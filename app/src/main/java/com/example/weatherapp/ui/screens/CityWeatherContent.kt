@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherapp.R
 import com.example.weatherapp.data.WeatherUIState
+import com.example.weatherapp.data.homeCityOttawa
 import com.example.weatherapp.model.City
 import com.example.weatherapp.model.WeatherDay
 import com.example.weatherapp.model.WeatherValue
@@ -37,36 +38,28 @@ import java.time.format.DateTimeFormatter
 // get user c
 
 @Composable
-fun CityWeatherContent(weatherUIState: WeatherUIState, modifier: Modifier = Modifier) {
-    // remove from UI code
-    val currentDateTime = LocalDateTime.now()
-    val formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy | HH:00")
-    val formattedDateTime = currentDateTime.format(formatter)
+fun CityWeatherContent(city: City, modifier: Modifier = Modifier) {
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly,
         modifier = modifier.fillMaxWidth()
     ) {
-
-        Text(text = weatherUIState.city.currentCondition.condition.name)
+        Text(text = city.currentCondition.condition.weatherDescription.joinToString())
 
         Image(
-            painter = painterResource(weatherUIState.city.currentCondition.condition.drawableResId),
+            painter = painterResource(city.currentCondition.condition.drawableResId),
             contentDescription = null,
             modifier = Modifier.size(80.dp)
         )
-        Text(text = "${weatherUIState.city.currentCondition.temperature} °")
+        Text(text = "${city.currentCondition.temperature} °")
 
+        Text(city.currentCondition.time)
 
-        Text(formattedDateTime)
-
-        hourRow(weatherUIState.city)
+        hourRow(city)
 
         // 7 day forecast
-
-        forecast7day(weatherUIState.city.forecast7day)
-
+        forecast7day(city.forecast7day)
     }
 }
 
@@ -112,12 +105,12 @@ fun SevenDayCard(weatherday: WeatherDay, modifier: Modifier = Modifier) {
 
             Image(
                 painter = painterResource(id = weatherday.dayCondition.condition.drawableResId),
-                contentDescription = weatherday.dayCondition.condition.name,
+                contentDescription = weatherday.dayCondition.condition.weatherDescription.joinToString(),
                 modifier = Modifier.size(40.dp)
             )
 
             Text(
-                weatherday.dayCondition.condition.name,
+                weatherday.dayCondition.condition.weatherDescription.joinToString(),
                 modifier = Modifier.padding(end = 75.dp, start = 25.dp)
             )
 
@@ -149,7 +142,7 @@ fun hourCard(weatherHour: WeatherValue, modifier: Modifier = Modifier) {
             }
             Image(
                 painter = painterResource(id = weatherHour.condition.drawableResId),
-                contentDescription = weatherHour.condition.name,
+                contentDescription = weatherHour.condition.weatherDescription.joinToString(),
                 modifier = Modifier.size(30.dp)
             )
 
@@ -166,5 +159,5 @@ fun hourCard(weatherHour: WeatherValue, modifier: Modifier = Modifier) {
 @Preview(showSystemUi = true)
 @Composable
 fun homeScreenPreview() {
-    CityWeatherContent(WeatherUIState())
+    CityWeatherContent(homeCityOttawa)
 }

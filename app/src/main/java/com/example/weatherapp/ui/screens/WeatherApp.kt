@@ -19,6 +19,12 @@ fun WeatherApp( modifier: Modifier = Modifier){
         onTabPressed = weatherAppViewModel::tabClick,
         onSearchScreenBack = weatherAppViewModel::backPressClickSearchScreen,
         onSearchSavedBack = weatherAppViewModel::backPressClickSavedScreen,
+        onSearchEnter = weatherAppViewModel::getSearchCityWeather,
+        onSearchValueChange = weatherAppViewModel::onSearch,
+        onSavedSearchEnter = {},
+        onSavedSearchValueChange = weatherAppViewModel::onSearch,
+        savedScreenSearchValue = weatherUIState.userSearch,
+        searchValue = weatherUIState.userSearch,
         modifier = modifier
     )
 }

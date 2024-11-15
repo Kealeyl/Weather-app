@@ -4,11 +4,11 @@ import com.example.weatherapp.model.City
 
 data class WeatherUIState (
     val listOfSavedCities: List<City> = listOfCities,
-    val city: City = listOfCities.first(),
+    val homeCity: City = homeCityOttawa,
     val userSearch: String = "",
     val currentScreen: Tab = Tab.HOME, // dynamic navigation
-    val currentSelectedCity: City = defaultCity,
-    val isPreviousSavedScreen: Boolean = false
+    val currentSelectedCity: City = defaultCity, // for weather details
+    val isPreviousSavedScreen: Boolean = false // for nav, clicking a city from either saved or search screen
 )
 
 enum class Tab{

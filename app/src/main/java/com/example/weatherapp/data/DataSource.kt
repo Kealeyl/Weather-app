@@ -2,7 +2,9 @@ package com.example.weatherapp.data
 
 import com.example.weatherapp.model.City
 import com.example.weatherapp.model.WeatherCondition
+import com.example.weatherapp.model.WeatherData
 import com.example.weatherapp.model.WeatherDay
+import com.example.weatherapp.model.WeatherNetwork
 import com.example.weatherapp.model.WeatherValue
 
 val listOfHours24HourTime = listOf(
@@ -21,13 +23,52 @@ val listOfHoursRegularTime = listOf(
 
 val listOfCities =
     listOf(
-        City("Montreal", arrayOfDummy7days(), WeatherValue(20, WeatherCondition.Sunny, "4:00")),
-        City("Austin", arrayOfDummy7days(), WeatherValue(20, WeatherCondition.Sunny, "2:00")),
-        City("Las Vegas", arrayOfDummy7days(), WeatherValue(20, WeatherCondition.Sunny, "1:00")),
-        City("São Paulo", arrayOfDummy7days(), WeatherValue(30, WeatherCondition.Sunny, "10:00")),
+        City(
+            "New York",
+            arrayOfDummy7days(),
+            WeatherValue(
+                20,
+                createRandomWeatherData(),
+                "4:00"
+            ),
+            networkRequest = WeatherNetwork.Loading
+        ),
+        City(
+            "Singapore",
+            arrayOfDummy7days(),
+            WeatherValue(20, createRandomWeatherData(), "1:00"),
+            networkRequest = WeatherNetwork.Loading
+        ),
+        City(
+            "Tokyo",
+            arrayOfDummy7days(),
+            WeatherValue(30, createRandomWeatherData(), "10:00"),
+            networkRequest = WeatherNetwork.Loading
+        ),
     )
 
-val defaultCity = City("Default", arrayOfDummy7days(), WeatherValue(-1, WeatherCondition.Sunny, "-1"))
+val defaultCity = City(
+    "Default",
+    arrayOfDummy7days(),
+    WeatherValue(-1, createRandomWeatherData(), "00:00 PM"),
+    networkRequest = WeatherNetwork.Loading
+)
+
+val homeCityOttawa = City(
+    "Ottawa",
+    arrayOfDummy7days(),
+    WeatherValue(-1, createRandomWeatherData(), "00:00 PM"),
+    networkRequest = WeatherNetwork.Loading
+)
+
+fun createRandomWeatherData(): WeatherData {
+    val conditions = WeatherCondition.values()
+
+    return WeatherData(
+        weatherDescription = listOf(conditions[conditions.indices.random()].name),
+        weatherIcons = listOf(conditions[conditions.indices.random()].weatherIcon),
+        drawableResId = conditions[conditions.indices.random()].drawableResId)
+}
 
 fun arrayOfDummy7days(): Array<WeatherDay> {
 
@@ -45,9 +86,8 @@ fun arrayOfDummy7days(): Array<WeatherDay> {
 
 fun arrayOfDummy24Hours(): Array<WeatherValue> {
 
-    val conditions = WeatherCondition.values()
     return Array(24) {
-        WeatherValue(it + 1, conditions[it % conditions.size], listOfHours24HourTime[it])
+        WeatherValue(it + 1, createRandomWeatherData(), listOfHours24HourTime[it])
     }
 }
 

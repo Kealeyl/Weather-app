@@ -24,6 +24,7 @@ import com.example.weatherapp.data.WeatherUIState
 fun HomeScreenTopBar(
     weatherUIState: WeatherUIState,
     onGridButtonClick: () -> Unit,
+    onRefreshButtonClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -46,12 +47,12 @@ fun HomeScreenTopBar(
                     )
                 }
                 Text(
-                    weatherUIState.currentSelectedCity.cityName,
+                    weatherUIState.homeCity.cityName,
                     modifier = Modifier.align(Alignment.Center)
                 )
 
                 IconButton(
-                    onClick = onGridButtonClick,
+                    onClick = onRefreshButtonClick,
                     modifier = Modifier.align(Alignment.CenterEnd)
                 ) {
                     Icon(
@@ -107,7 +108,7 @@ fun ToDoAppBarDetails() {
 @Preview(showSystemUi = true)
 @Composable
 fun ToDoAppBarHome() {
-    HomeScreenTopBar(onGridButtonClick = {}, weatherUIState = WeatherUIState())
+    HomeScreenTopBar(onGridButtonClick = {}, weatherUIState = WeatherUIState(), onRefreshButtonClick = {})
 }
 
 @Preview(showSystemUi = true)

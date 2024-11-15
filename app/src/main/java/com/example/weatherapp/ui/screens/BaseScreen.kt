@@ -1,6 +1,7 @@
 package com.example.weatherapp.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -26,13 +27,19 @@ fun BaseScreen(
     onCityClick: (City) -> Unit,
     onSearchScreenBack: () -> Unit,
     onSearchSavedBack: () -> Unit,
+    searchValue: String,
+    onSearchValueChange: (String) -> Unit,
+    onSearchEnter: (String) -> Unit,
+    savedScreenSearchValue: String,
+    onSavedSearchValueChange: (String) -> Unit,
+    onSavedSearchEnter: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
     val navigationItemContentList = listOf(
         NavigationItemContent(
             Icons.Default.Home,
-            "Home screen ${weatherUIState.city.cityName}",
+            "Home screen ${weatherUIState.homeCity.cityName}",
             Tab.HOME
         ),
         NavigationItemContent(Icons.Default.Search, "Search for city", Tab.SEARCH),
@@ -48,20 +55,24 @@ fun BaseScreen(
         )
 
         Tab.SEARCH -> SearchCitiesScreen(
-            listOfCities = emptyList(), // populate with API ?
-            onCityClick = onCityClick, // city weather screen
             weatherUIState = weatherUIState,
             navigationItemContentList = navigationItemContentList,
             onTabPressed = onTabPressed,
+            onSearchEnter = onSearchEnter,
+            onSearchValueChange = onSearchValueChange,
+            searchValue = searchValue,
             modifier = modifier
         )
 
-        Tab.SAVED -> SearchCitiesScreen( // back press
+        Tab.SAVED -> SavedCitiesScreen( // back press
             listOfCities = weatherUIState.listOfSavedCities,
             onCityClick = onCityClick, // city weather screen
             weatherUIState = weatherUIState,
             navigationItemContentList = navigationItemContentList,
             onTabPressed = onTabPressed,
+            onSearchEnter = onSavedSearchEnter,
+            onSearchValueChange = onSavedSearchValueChange,
+            searchValue = savedScreenSearchValue,
             modifier = modifier
         )
 
@@ -93,7 +104,7 @@ private fun ClickedCityWeatherScreen(
             weatherUIState = weatherUIState,
             onBackButtonClicked = onBackButtonClicked
         )
-        CityWeatherContent(weatherUIState, modifier = Modifier.weight(1f))
+        CityWeatherContent(weatherUIState.currentSelectedCity, modifier = Modifier.weight(1f))
     }
 }
 
@@ -105,8 +116,13 @@ private fun HomeCityWeatherScreen(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        HomeScreenTopBar(weatherUIState, {}, modifier = Modifier.background(Color.LightGray))
-        CityWeatherContent(weatherUIState, modifier = Modifier.weight(1f))
+        HomeScreenTopBar(
+            weatherUIState,
+            onGridButtonClick = {},
+            onRefreshButtonClick = {},
+            modifier = Modifier.background(Color.LightGray)
+        )
+        CityWeatherContent(weatherUIState.homeCity, modifier = Modifier.weight(1f))
         BottomNavigationBar(
             currentTab = weatherUIState.currentScreen,
             onTabPressed = onTabPressed,
@@ -118,9 +134,39 @@ private fun HomeCityWeatherScreen(
 @Composable
 private fun SearchCitiesScreen(
     weatherUIState: WeatherUIState,
+    onTabPressed: (Tab) -> Unit,
+    searchValue: String,
+    onSearchValueChange: (String) -> Unit,
+    onSearchEnter: (String) -> Unit,
+    navigationItemContentList: List<NavigationItemContent>,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.fillMaxSize()) {
+        Box(modifier = Modifier.weight(1f)){
+            SearchBar(
+                searchValue = searchValue,
+                onSearchValueChange = onSearchValueChange,
+                onSearchEnter = onSearchEnter
+            )
+        }
+
+        BottomNavigationBar(
+            currentTab = weatherUIState.currentScreen,
+            onTabPressed = onTabPressed,
+            navigationItemContentList = navigationItemContentList
+        )
+    }
+}
+
+@Composable
+private fun SavedCitiesScreen(
+    weatherUIState: WeatherUIState,
     listOfCities: List<City>,
     onTabPressed: (Tab) -> Unit,
     onCityClick: (City) -> Unit,
+    searchValue: String,
+    onSearchValueChange: (String) -> Unit,
+    onSearchEnter: (String) -> Unit,
     navigationItemContentList: List<NavigationItemContent>,
     modifier: Modifier = Modifier
 ) {
@@ -128,6 +174,9 @@ private fun SearchCitiesScreen(
         searchCitiesContent(
             listOfCities = listOfCities,
             onCityClick = onCityClick,
+            searchValue = searchValue,
+            onSearchValueChange = onSearchValueChange,
+            onSearchEnter = onSearchEnter,
             modifier = Modifier.weight(1f)
         )
         BottomNavigationBar(
@@ -177,7 +226,14 @@ fun BaseScreenHomePreview() {
         weatherUIState = WeatherUIState(),
         onTabPressed = {},
         onSearchScreenBack = {},
-        onSearchSavedBack = {})
+        onSearchSavedBack = {},
+        onSearchEnter = {},
+        onSearchValueChange = {},
+        onSavedSearchEnter = {},
+        onSavedSearchValueChange = {},
+        searchValue = "",
+        savedScreenSearchValue = ""
+    )
 }
 
 @Preview(showSystemUi = true)
@@ -188,7 +244,14 @@ fun BaseScreenSavedPreview() {
         weatherUIState = WeatherUIState(currentScreen = Tab.SAVED),
         onTabPressed = {},
         onSearchScreenBack = {},
-        onSearchSavedBack = {})
+        onSearchSavedBack = {},
+        onSearchEnter = {},
+        onSearchValueChange = {},
+        onSavedSearchEnter = {},
+        onSavedSearchValueChange = {},
+        searchValue = "",
+        savedScreenSearchValue = ""
+    )
 }
 
 @Preview(showSystemUi = true)
@@ -199,5 +262,12 @@ fun BaseScreenSearchPreview() {
         weatherUIState = WeatherUIState(currentScreen = Tab.SEARCH),
         onTabPressed = {},
         onSearchScreenBack = {},
-        onSearchSavedBack = {})
+        onSearchSavedBack = {},
+        onSearchEnter = {},
+        onSearchValueChange = {},
+        onSavedSearchEnter = {},
+        onSavedSearchValueChange = {},
+        searchValue = "",
+        savedScreenSearchValue = ""
+    )
 }
