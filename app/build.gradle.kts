@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.0" // for JSON to kotlin object
 }
 
 android {
@@ -8,6 +10,9 @@ android {
     compileSdk = 34
 
     defaultConfig {
+
+        buildConfigField("String", "API_KEY", "\"${project.findProperty("API_KEY")}\"")
+
         applicationId = "com.example.weatherapp"
         minSdk = 24
         targetSdk = 34
@@ -38,6 +43,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -69,4 +75,14 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(libs.androidx.lifecycle.viewmodel.compose) // view model
+
+    // Retrofit
+    implementation(libs.retrofit)
+
+    // Kotlin serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    // Retrofit with Kotlin serialization Converter
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
+    implementation(libs.okhttp)
 }
