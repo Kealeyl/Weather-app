@@ -171,7 +171,7 @@ private fun SavedCitiesScreen(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        searchCitiesContent(
+        savedCitiesContent(
             listOfCities = listOfCities,
             onCityClick = onCityClick,
             searchValue = searchValue,

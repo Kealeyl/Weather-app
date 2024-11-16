@@ -25,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,7 +40,7 @@ import com.example.weatherapp.model.WeatherNetwork
 import android.util.Log
 
 @Composable
-fun searchCitiesContent(
+fun savedCitiesContent(
     listOfCities: List<City>,
     searchValue: String,
     onSearchValueChange: (String) -> Unit,
@@ -77,8 +76,8 @@ fun SearchBar(
             imeAction = ImeAction.Search
         ),
         keyboardActions = KeyboardActions(
-            onSearch = { onSearchEnter(searchValue)},
-            onDone = {onSearchEnter(searchValue)}
+            onSearch = { onSearchEnter(searchValue) },
+            onDone = { onSearchEnter(searchValue) }
         ),
         modifier = modifier.fillMaxWidth()
     )
@@ -95,26 +94,15 @@ fun cityCardColumns(
     LazyColumn(modifier = modifier) {
 
         items(listOfCities) {
-            when (it.networkRequest) {
-                WeatherNetwork.Error ->
-                    cityCardError(it, modifier = Modifier
-                    .padding(10.dp))
-
-                WeatherNetwork.Loading ->
-                    cityCardLoading(it, modifier = Modifier
-                    .padding(10.dp))
-
-                is WeatherNetwork.Success ->
-                    cityCardSuccess(it, modifier = Modifier
-                    .padding(10.dp)
-                    .clickable { onCityClick(it) })
-            }
+            cityCard(it, modifier = Modifier
+                .padding(10.dp)
+                .clickable { onCityClick(it) })
         }
     }
 }
 
 @Composable
-fun cityCardSuccess(city: City, modifier: Modifier = Modifier) {
+fun cityCard(city: City, modifier: Modifier = Modifier) {
 
     Card(
         modifier = modifier
@@ -131,92 +119,54 @@ fun cityCardSuccess(city: City, modifier: Modifier = Modifier) {
                         1000f
                     )
                 ),
+            horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(id = city.currentCondition.condition.drawableResId),
-                contentDescription = city.currentCondition.condition.weatherDescription.joinToString(),
-                modifier = Modifier
-                    .padding(start = 16.dp, end = 16.dp)
-                    .size(50.dp)
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    city.cityName,
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(bottom = 4.dp),
-                    fontWeight = FontWeight.Bold
-                )
-                Text(city.currentCondition.condition.weatherDescription.joinToString())
-            }
 
-            Row(modifier = Modifier.padding(16.dp)) {
-                Text(text = city.currentCondition.temperature.toString(), fontSize = 30.sp)
-                Text(stringResource(id = R.string.degree), fontSize = 25.sp)
-            }
-        }
-    }
-}
-
-@Composable
-fun cityCardLoading(city: City, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(70.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color.Transparent, MaterialTheme.colorScheme.scrim),
-                        0f,
-                        1000f
+            when (city.networkRequest) {
+                // network error
+                WeatherNetwork.Error -> {
+                    Image(
+                        painter = painterResource(id = R.drawable.network_error),
+                        contentDescription = "error",
+                        modifier = Modifier.size(70.dp)
                     )
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.loading_img),
-                contentDescription = city.currentCondition.condition.weatherDescription.joinToString(),
-                modifier = Modifier
-                    .size(200.dp),
-                contentScale = ContentScale.Crop
-            )
-        }
-    }
-}
+                }
 
-@Composable
-fun cityCardError(city: City, modifier: Modifier = Modifier) {
-
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(70.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color.Transparent, MaterialTheme.colorScheme.scrim),
-                        0f,
-                        1000f
+                // network loading
+                WeatherNetwork.Loading -> {
+                    Image(
+                        painter = painterResource(id = R.drawable.network_loading),
+                        contentDescription = "loading",
+                        modifier = Modifier
+                            .size(70.dp)
                     )
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.error_img),
-                contentDescription = city.currentCondition.condition.weatherDescription.joinToString(),
-                modifier = Modifier
-                    .size(70.dp),
-                contentScale = ContentScale.Crop
-            )
+                }
+
+                // network success
+                WeatherNetwork.Success -> {
+                    Image(
+                        painter = painterResource(id = city.currentCondition.condition.drawableResId),
+                        contentDescription = city.currentCondition.condition.weatherDescription.joinToString(),
+                        modifier = Modifier
+                            .padding(start = 16.dp, end = 16.dp)
+                            .size(50.dp)
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            city.cityName,
+                            fontSize = 20.sp,
+                            modifier = Modifier.padding(bottom = 4.dp),
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(city.currentCondition.condition.weatherDescription.joinToString())
+                    }
+                    Row(modifier = Modifier.padding(16.dp)) {
+                        Text(text = city.currentCondition.temperature.toString(), fontSize = 30.sp)
+                        Text(stringResource(id = R.string.degree), fontSize = 25.sp)
+                    }
+                }
+            }
         }
     }
 }
@@ -224,7 +174,7 @@ fun cityCardError(city: City, modifier: Modifier = Modifier) {
 @Preview(showSystemUi = true)
 @Composable
 fun savedScreenPreview() {
-    searchCitiesContent(
+    savedCitiesContent(
         listOfCities,
         onCityClick = {},
         onSearchEnter = {},
@@ -235,18 +185,18 @@ fun savedScreenPreview() {
 
 @Preview(showSystemUi = true)
 @Composable
-fun cityCardPreview() {
-    cityCardSuccess(city = listOfCities[0])
+fun cityCardErrorPreview() {
+    cityCard(city = listOfCities[0].copy(networkRequest = WeatherNetwork.Error))
 }
 
 @Preview(showSystemUi = true)
 @Composable
 fun cityCardLoadingPreview() {
-    cityCardLoading(city = listOfCities[0])
+    cityCard(city = listOfCities[0].copy(networkRequest = WeatherNetwork.Loading))
 }
 
 @Preview(showSystemUi = true)
 @Composable
-fun cityCardErrorPreview() {
-    cityCardError(city = listOfCities[0])
+fun cityCardPreview() {
+    cityCard(city = listOfCities[0].copy(networkRequest = WeatherNetwork.Success))
 }

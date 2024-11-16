@@ -33,6 +33,7 @@ class WeatherAppViewModel : ViewModel() {
 
     init {
         getHomeCityWeather(_uiState.value.homeCity.cityName)
+        getSavedCitiesWeather()
         _uiState.update {
             it.copy(listOfSavedCities = listOfCities)
         }
@@ -41,10 +42,6 @@ class WeatherAppViewModel : ViewModel() {
     fun tabClick(clickedTab: Tab) {
         _uiState.update {
             it.copy(currentScreen = clickedTab)
-        }
-
-        if (clickedTab == Tab.SAVED) {
-            getSavedCitiesWeather();
         }
     }
 
@@ -123,7 +120,6 @@ class WeatherAppViewModel : ViewModel() {
                         networkRequest = WeatherNetwork.Success
                     )
                 )
-
 
             } catch (e: Exception) {
                 Log.e("getWeatherForCity", "Error fetching weather data for $city", e)
