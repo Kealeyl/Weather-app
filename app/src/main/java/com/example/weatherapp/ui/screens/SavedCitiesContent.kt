@@ -38,6 +38,11 @@ import com.example.weatherapp.data.listOfCities
 import com.example.weatherapp.model.City
 import com.example.weatherapp.model.WeatherNetwork
 import android.util.Log
+import android.widget.Toast
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun savedCitiesContent(
@@ -46,14 +51,29 @@ fun savedCitiesContent(
     onSearchValueChange: (String) -> Unit,
     onCityClick: (City) -> Unit,
     onSearchEnter: (String) -> Unit,
+    onRefreshButtonClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current // for the toast
     Column(modifier = modifier) {
-        SearchBar(
-            searchValue = searchValue,
-            onSearchValueChange = onSearchValueChange,
-            onSearchEnter = onSearchEnter
-        )
+        Row (verticalAlignment = Alignment.CenterVertically) {
+            SearchBar(
+                searchValue = searchValue,
+                onSearchValueChange = onSearchValueChange,
+                onSearchEnter = onSearchEnter,
+                modifier = Modifier.weight(1f).padding(start = 10.dp)
+            )
+            IconButton(
+                onClick = {onRefreshButtonClick()
+                    Toast.makeText(context, "Refreshed", Toast.LENGTH_SHORT).show()}
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = "Refresh",
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
         cityCardColumns(listOfCities, onCityClick)
     }
 }
@@ -79,7 +99,7 @@ fun SearchBar(
             onSearch = { onSearchEnter(searchValue) },
             onDone = { onSearchEnter(searchValue) }
         ),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
     )
 }
 
@@ -179,6 +199,7 @@ fun savedScreenPreview() {
         onCityClick = {},
         onSearchEnter = {},
         onSearchValueChange = {},
+        onRefreshButtonClick = {},
         searchValue = "New York"
     )
 }

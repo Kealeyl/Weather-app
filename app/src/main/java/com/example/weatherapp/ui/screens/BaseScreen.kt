@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
@@ -33,6 +34,11 @@ fun BaseScreen(
     savedScreenSearchValue: String,
     onSavedSearchValueChange: (String) -> Unit,
     onSavedSearchEnter: (String) -> Unit,
+    addToSavedCities: (City) -> Unit,
+    isCityInSavedList: (City) -> Boolean,
+    onDeleteButtonClick: (City) -> Unit,
+    onRefreshSavedButtonClick: () -> Unit,
+    onRefreshHomeButtonClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -51,6 +57,7 @@ fun BaseScreen(
             navigationItemContentList = navigationItemContentList,
             onTabPressed = onTabPressed,
             weatherUIState = weatherUIState,
+            onRefreshButtonClick = onRefreshHomeButtonClick,
             modifier = modifier
         )
 
@@ -73,6 +80,7 @@ fun BaseScreen(
             onSearchEnter = onSavedSearchEnter,
             onSearchValueChange = onSavedSearchValueChange,
             searchValue = savedScreenSearchValue,
+            onRefreshButtonClick = onRefreshSavedButtonClick,
             modifier = modifier
         )
 
@@ -81,12 +89,18 @@ fun BaseScreen(
                 ClickedCityWeatherScreen(
                     onBackButtonClicked = onSearchSavedBack,
                     weatherUIState = weatherUIState,
+                    onAddButtonClick = addToSavedCities,
+                    isCityInSavedList = isCityInSavedList,
+                    onDeleteButtonClick = onDeleteButtonClick,
                     modifier = modifier
                 )
             } else {
                 ClickedCityWeatherScreen(
                     onBackButtonClicked = onSearchScreenBack,
                     weatherUIState = weatherUIState,
+                    onAddButtonClick = addToSavedCities,
+                    isCityInSavedList = isCityInSavedList,
+                    onDeleteButtonClick = onDeleteButtonClick,
                     modifier = modifier
                 )
             }
@@ -97,12 +111,18 @@ fun BaseScreen(
 private fun ClickedCityWeatherScreen(
     weatherUIState: WeatherUIState,
     onBackButtonClicked: () -> Unit,
+    onAddButtonClick: (City) -> Unit,
+    isCityInSavedList: (City) -> Boolean,
+    onDeleteButtonClick: (City) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         CityDetailsScreenTopBar(
             weatherUIState = weatherUIState,
-            onBackButtonClicked = onBackButtonClicked
+            onBackButtonClicked = onBackButtonClicked,
+            onAddButtonClick = onAddButtonClick,
+            isCityInSavedList = isCityInSavedList,
+            onDeleteButtonClick = onDeleteButtonClick
         )
         CityWeatherContent(weatherUIState.currentSelectedCity, modifier = Modifier.weight(1f))
     }
@@ -113,13 +133,14 @@ private fun HomeCityWeatherScreen(
     weatherUIState: WeatherUIState,
     onTabPressed: (Tab) -> Unit,
     navigationItemContentList: List<NavigationItemContent>,
+    onRefreshButtonClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         HomeScreenTopBar(
             weatherUIState,
             onGridButtonClick = {},
-            onRefreshButtonClick = {},
+            onRefreshButtonClick = onRefreshButtonClick,
             modifier = Modifier.background(Color.LightGray)
         )
         CityWeatherContent(weatherUIState.homeCity, modifier = Modifier.weight(1f))
@@ -142,11 +163,12 @@ private fun SearchCitiesScreen(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        Box(modifier = Modifier.weight(1f)){
+        Box(modifier = Modifier.weight(1f)) {
             SearchBar(
                 searchValue = searchValue,
                 onSearchValueChange = onSearchValueChange,
-                onSearchEnter = onSearchEnter
+                onSearchEnter = onSearchEnter,
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
@@ -166,6 +188,7 @@ private fun SavedCitiesScreen(
     onCityClick: (City) -> Unit,
     searchValue: String,
     onSearchValueChange: (String) -> Unit,
+    onRefreshButtonClick: () -> Unit,
     onSearchEnter: (String) -> Unit,
     navigationItemContentList: List<NavigationItemContent>,
     modifier: Modifier = Modifier
@@ -177,6 +200,7 @@ private fun SavedCitiesScreen(
             searchValue = searchValue,
             onSearchValueChange = onSearchValueChange,
             onSearchEnter = onSearchEnter,
+            onRefreshButtonClick = onRefreshButtonClick,
             modifier = Modifier.weight(1f)
         )
         BottomNavigationBar(
@@ -231,7 +255,12 @@ fun BaseScreenHomePreview() {
         onSearchValueChange = {},
         onSavedSearchEnter = {},
         onSavedSearchValueChange = {},
+        addToSavedCities = {},
         searchValue = "",
+        isCityInSavedList = {_-> true},
+        onDeleteButtonClick = {},
+        onRefreshSavedButtonClick = {},
+        onRefreshHomeButtonClick = {},
         savedScreenSearchValue = ""
     )
 }
@@ -249,8 +278,13 @@ fun BaseScreenSavedPreview() {
         onSearchValueChange = {},
         onSavedSearchEnter = {},
         onSavedSearchValueChange = {},
+        addToSavedCities = {},
         searchValue = "",
-        savedScreenSearchValue = ""
+        savedScreenSearchValue = "",
+        isCityInSavedList = {_-> true},
+        onRefreshSavedButtonClick = {},
+        onRefreshHomeButtonClick = {},
+        onDeleteButtonClick = {},
     )
 }
 
@@ -267,7 +301,12 @@ fun BaseScreenSearchPreview() {
         onSearchValueChange = {},
         onSavedSearchEnter = {},
         onSavedSearchValueChange = {},
+        addToSavedCities = {},
         searchValue = "",
-        savedScreenSearchValue = ""
+        savedScreenSearchValue = "",
+        isCityInSavedList = {_-> true},
+        onRefreshSavedButtonClick = {},
+        onRefreshHomeButtonClick = {},
+        onDeleteButtonClick = {},
     )
 }

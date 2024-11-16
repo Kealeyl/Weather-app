@@ -25,6 +25,11 @@ fun WeatherApp( modifier: Modifier = Modifier){
         onSavedSearchValueChange = weatherAppViewModel::onSearch,
         savedScreenSearchValue = weatherUIState.userSearch,
         searchValue = weatherUIState.userSearch,
+        addToSavedCities = weatherAppViewModel::addCity,
+        isCityInSavedList = weatherAppViewModel::isCityInSavedList,
+        onDeleteButtonClick = weatherAppViewModel::deleteCity,
+        onRefreshSavedButtonClick = weatherAppViewModel::getSavedCitiesWeather,
+        onRefreshHomeButtonClick = weatherAppViewModel::getHomeCityWeather,
         modifier = modifier
     )
 }

@@ -29,10 +29,8 @@ class WeatherAppViewModel : ViewModel() {
     // read-only state flow
     val uiState: StateFlow<WeatherUIState> = _uiState.asStateFlow()
 
-    private var tempCity: City = defaultCity
-
     init {
-        getHomeCityWeather(_uiState.value.homeCity.cityName)
+        getHomeCityWeather()
         getSavedCitiesWeather()
         _uiState.update {
             it.copy(listOfSavedCities = listOfCities)
@@ -72,16 +70,21 @@ class WeatherAppViewModel : ViewModel() {
         return _uiState.value.listOfSavedCities.find { it == city }
     }
 
+    // refactor to use map?
+    fun isCityInSavedList(city: City): Boolean {
+        return _uiState.value.listOfSavedCities.any { it.cityName == city.cityName }
+    }
+
     fun onSearch(searched: String) {
         _uiState.update {
             it.copy(userSearch = searched)
         }
     }
 
-    fun addCity() {
+    fun addCity(city: City) {
         _uiState.update {
             it.copy(
-                listOfSavedCities = it.listOfSavedCities + tempCity
+                listOfSavedCities = it.listOfSavedCities + city
             )
         }
     }
@@ -106,7 +109,7 @@ class WeatherAppViewModel : ViewModel() {
 
                 getNetWorkRequestCity(
                     City(
-                        cityName = city,
+                        cityName = result.location.name,
                         currentCondition = WeatherValue(
                             temperature = result.current.temperature,
                             time = result.location.localtime,
@@ -155,8 +158,8 @@ class WeatherAppViewModel : ViewModel() {
         }
     }
 
-    fun getHomeCityWeather(city: String) {
-        getWeatherForCity(city) { netWorkRequestCity ->
+    fun getHomeCityWeather() {
+        getWeatherForCity(_uiState.value.homeCity.cityName) { netWorkRequestCity ->
             _uiState.update { it.copy(homeCity = netWorkRequestCity) }
         }
     }
@@ -173,5 +176,4 @@ class WeatherAppViewModel : ViewModel() {
             }
         }
     }
-
 }
