@@ -10,7 +10,6 @@ android {
     compileSdk = 34
 
     defaultConfig {
-
         buildConfigField("String", "API_KEY", "\"${project.findProperty("API_KEY")}\"")
 
         applicationId = "com.example.weatherapp"

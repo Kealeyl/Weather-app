@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,8 +31,9 @@ import com.example.weatherapp.R
 import com.example.weatherapp.data.homeCityOttawa
 import com.example.weatherapp.model.City
 import com.example.weatherapp.model.WeatherDay
+import com.example.weatherapp.model.WeatherHour
 import com.example.weatherapp.model.WeatherNetwork
-import com.example.weatherapp.model.WeatherValue
+import com.example.weatherapp.model.stringToDrawableRes
 
 @Composable
 fun CityWeatherContent(city: City, modifier: Modifier = Modifier) {
@@ -68,27 +71,27 @@ fun CityWeatherContent(city: City, modifier: Modifier = Modifier) {
             }
 
             WeatherNetwork.Success -> {
-                Text(text = city.currentCondition.condition.weatherDescription.joinToString())
+                Text(text = city.currentCondition.weatherDescription)
 
                 Image(
-                    painter = painterResource(city.currentCondition.condition.drawableResId),
+                    painter = painterResource(stringToDrawableRes(city.currentCondition.weatherIcon)),
                     contentDescription = null,
                     modifier = Modifier.size(80.dp)
                 )
 
                 Text(text = "${city.currentCondition.temperature} °")
-                Text(city.currentCondition.time)
+                Text(city.currentCondition.date)
             }
         }
 
-        hourRow(city.forecast7day[0].forecast24Hour, city.networkRequest)
+        hourRow(city.forecast24hour, city.networkRequest)
         forecast7day(city.forecast7day, city.networkRequest)
     }
 }
 
 @Composable
 fun hourRow(
-    forecast24Hour: Array<WeatherValue>,
+    forecast24Hour: List<WeatherHour>,
     networkStatus: WeatherNetwork,
     modifier: Modifier = Modifier
 ) {
@@ -105,13 +108,17 @@ fun hourRow(
 
 @Composable
 fun forecast7day(
-    forecast7day: Array<WeatherDay>,
+    forecast7day: List<WeatherDay>,
     networkStatus: WeatherNetwork,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(modifier = modifier) {
         items(forecast7day) {
-            SevenDayCard(weatherday = it, networkStatus = networkStatus)
+            SevenDayCard(
+                weatherday = it,
+                networkStatus = networkStatus,
+                modifier = Modifier.padding(10.dp),
+            )
         }
     }
 }
@@ -136,22 +143,35 @@ fun SevenDayCard(
                         fontWeight = FontWeight.Bold
                     )
 
-                    Row(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "", fontSize = 30.sp)
-                    }
+                    Text(
+                        "",
+                        fontSize = 26.sp,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.End
+                    )
                 }
 
-                Image(
-                    painter = painterResource(id = R.drawable.network_error),
-                    contentDescription = "Error",
-                    modifier = Modifier.size(40.dp).align(Alignment.Center)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Spacer(modifier = Modifier.width(150.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.network_error),
+                        contentDescription = weatherday.weatherDescription,
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Text(
+                        "",
+                        modifier = Modifier
+                            .padding(end = 10.dp)
+                            .weight(1f)
+                    )
+
+                }
             }
         }
 
@@ -168,22 +188,35 @@ fun SevenDayCard(
                         fontWeight = FontWeight.Bold
                     )
 
-                    Row(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "", fontSize = 30.sp)
-                    }
+                    Text(
+                        "",
+                        fontSize = 26.sp,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.End
+                    )
                 }
 
-                Image(
-                    painter = painterResource(id = R.drawable.network_loading),
-                    contentDescription = "Error",
-                    modifier = Modifier.size(40.dp).align(Alignment.Center)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Spacer(modifier = Modifier.width(150.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.network_loading),
+                        contentDescription = weatherday.weatherDescription,
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Text(
+                        "",
+                        modifier = Modifier
+                            .padding(end = 10.dp)
+                            .weight(1f)
+                    )
+
+                }
             }
         }
 
@@ -200,29 +233,37 @@ fun SevenDayCard(
                         fontWeight = FontWeight.Bold
                     )
 
-                    Row(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            weatherday.dayCondition.condition.weatherDescription.joinToString(),
-                            modifier = Modifier.padding(end = 60.dp)
-                        )
 
-                        Text(text = "${weatherday.dayCondition.temperature}°", fontSize = 30.sp)
-                    }
+                    Text(
+                        text = "${weatherday.temperature}°",
+                        fontSize = 26.sp,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.End
+                    )
                 }
 
-                Image(
-                    painter = painterResource(id = weatherday.dayCondition.condition.drawableResId),
-                    contentDescription = weatherday.dayCondition.condition.weatherDescription.joinToString(),
-                    modifier = Modifier.size(40.dp).align(Alignment.Center)
-                )
-            }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Spacer(modifier = Modifier.width(150.dp))
+                    Image(
+                        painter = painterResource(id = stringToDrawableRes(weatherday.weatherIcon)),
+                        contentDescription = weatherday.weatherDescription,
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Text(
+                        weatherday.weatherDescription,
+                        modifier = Modifier
+                            .padding(end = 10.dp)
+                            .weight(1f)
+                    )
 
+                }
+            }
         }
     }
 }
@@ -230,7 +271,7 @@ fun SevenDayCard(
 
 @Composable
 fun hourCard(
-    weatherHour: WeatherValue,
+    weatherHour: WeatherHour,
     networkStatus: WeatherNetwork,
     modifier: Modifier = Modifier
 ) {
@@ -270,15 +311,14 @@ fun hourCard(
                 WeatherNetwork.Success -> {
                     Row {
                         Text(
-                            weatherHour.temperature.toString(),
+                            "${weatherHour.hour}:00",
                             fontSize = 12.sp,
                             modifier = Modifier.padding(end = 2.dp)
                         )
-                        Text(stringResource(id = R.string.AM), fontSize = 12.sp)
                     }
                     Image(
-                        painter = painterResource(id = weatherHour.condition.drawableResId),
-                        contentDescription = weatherHour.condition.weatherDescription.joinToString(),
+                        painter = painterResource(id = stringToDrawableRes(weatherHour.weatherIcon)),
+                        contentDescription = weatherHour.weatherDescription,
                         modifier = Modifier.size(30.dp)
                     )
 

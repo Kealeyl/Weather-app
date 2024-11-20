@@ -8,18 +8,27 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 // only include the root URL and path
-private val BASE_URL = "https://api.weatherstack.com/"
+private val BASE_URL = "https://api.openweathermap.org"
 
-interface WeatherApiService {
-
+interface NewWeatherApiService {
     // GET request specifying an endpoint to append to the baseUrl
-    @GET("current")
-    suspend fun getCityWeather(     // suspend to not block the calling thread
-        @Query("access_key") apiKey: String,
-        @Query("query") city: String
+    @GET("geo/1.0/direct")
+    suspend fun getLatLongName(     // suspend to not block the calling thread
+        @Query("q") city: String,
+        @Query("limit") limit: Int,
+        @Query("appid") apiKey: String,
+    ): List<GeocoderRequest>
+
+    @GET("data/3.0/onecall")
+    suspend fun getNewCityWeather(
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
+        @Query("exclude") exclude: String, // exclude minutely,alerts
+        @Query("units") tempUnit: String, // metric for Celsius, imperial for Fahrenheit
+        @Query("appid") apiKey: String,
+
     ): CityRequest
 }
-
 
 // build and create a Retrofit object.
 // convert the JSON object to Kotlin objects using kotlinx.serialization
@@ -28,6 +37,6 @@ private val retrofit = Retrofit.Builder().addConverterFactory(Json.asConverterFa
     .build()
 
 // one instance of the Retrofit API service
-object WeatherApi {
-    val retrofitService: WeatherApiService by lazy { retrofit.create(WeatherApiService::class.java) }
+object NewWeatherApi {
+    val newRetrofitService: NewWeatherApiService by lazy { retrofit.create(NewWeatherApiService::class.java) }
 }

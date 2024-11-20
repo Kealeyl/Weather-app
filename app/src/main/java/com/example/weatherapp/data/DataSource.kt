@@ -1,102 +1,97 @@
 package com.example.weatherapp.data
 
 import com.example.weatherapp.model.City
-import com.example.weatherapp.model.WeatherCondition
-import com.example.weatherapp.model.WeatherData
+import com.example.weatherapp.model.Hour24
 import com.example.weatherapp.model.WeatherDay
+import com.example.weatherapp.model.WeatherHour
 import com.example.weatherapp.model.WeatherNetwork
-import com.example.weatherapp.model.WeatherValue
-
-val listOfHours24HourTime = listOf(
-    "00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
-    "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
-    "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
-    "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"
-)
-
-val listOfHoursRegularTime = listOf(
-    "12" to "AM", "1" to "AM", "2" to "AM", "3" to "AM", "4" to "AM", "5" to "AM",
-    "6" to "AM", "7" to "AM", "8" to "AM", "9" to "AM", "10" to "AM", "11" to "AM",
-    "12" to "PM", "1" to "PM", "2" to "PM", "3" to "PM", "4" to "PM", "5" to "PM",
-    "6" to "PM", "7" to "PM", "8" to "PM", "9" to "PM", "10" to "PM", "11" to "PM"
-)
+import com.example.weatherapp.model.WeatherValues
+import com.example.weatherapp.model.WeekDay
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import kotlin.random.Random
 
 val listOfCities =
     listOf(
-        City(
-            "New York",
-            arrayOfDummy7days(),
-            WeatherValue(
-                20,
-                createRandomWeatherData(),
-                "4:00"
-            ),
-            networkRequest = WeatherNetwork.Loading
-        ),
-        City(
-            "Singapore",
-            arrayOfDummy7days(),
-            WeatherValue(20, createRandomWeatherData(), "1:00"),
-            networkRequest = WeatherNetwork.Loading
-        ),
-        City(
-            "Tokyo",
-            arrayOfDummy7days(),
-            WeatherValue(30, createRandomWeatherData(), "10:00"),
-            networkRequest = WeatherNetwork.Loading
-        ),
+        createRandomCity("New York"),
+        createRandomCity("Singapore"),
+        createRandomCity("Tokyo")
     )
 
-val defaultCity = City(
-    "Default",
-    arrayOfDummy7days(),
-    WeatherValue(-1, createRandomWeatherData(), "00:00 PM"),
-    networkRequest = WeatherNetwork.Loading
-)
+val defaultCity = createRandomCity("Default")
 
-val homeCityOttawa = City(
-    "Ottawa",
-    arrayOfDummy7days(),
-    WeatherValue(-1, createRandomWeatherData(), "00:00 PM"),
-    networkRequest = WeatherNetwork.Loading
-)
+val homeCityOttawa = createRandomCity("Ottawa")
 
-fun createRandomWeatherData(): WeatherData {
-    val conditions = WeatherCondition.values()
-
-    return WeatherData(
-        weatherDescription = listOf(conditions[conditions.indices.random()].name),
-        weatherIcons = listOf(conditions[conditions.indices.random()].weatherIcon),
-        drawableResId = conditions[conditions.indices.random()].drawableResId)
+fun createRandomCity(cityName: String): City {
+    return City(
+        cityName = cityName,
+        currentCondition = createRandomWeatherDayForCurrentWeather(),
+        forecast7day = listOfDummy7days(),
+        forecast24hour = listOfDummy24Hours(),
+        lat = 0.0,
+        lon = 0.0,
+        networkRequest = WeatherNetwork.Loading
+    )
 }
 
-fun arrayOfDummy7days(): Array<WeatherDay> {
+fun createRandomWeatherDayForCurrentWeather(): WeatherDay {
+    val weatherDescriptions = WeatherValues.entries.toTypedArray().map { it.description }
+    val weatherIcons = WeatherValues.entries.toTypedArray().map { it.iconCode }
 
-    val forecast = arrayOfDummy24Hours()
-    val weekDays = DaysOfTheWeek.values()
+    val randomInt = Random.nextInt(WeatherValues.entries.size)
 
-    return Array(7) {
-        WeatherDay(
-            forecast24Hour = forecast,
-            date = weekDays[it % weekDays.size].name,
-            dayCondition = forecast[0]
+    return WeatherDay(
+        date = SimpleDateFormat("EEEE, dd MMMM yyyy | HH:00", Locale.getDefault()).format(Date()),
+        temperature = Random.nextInt(0, 31),
+        weatherIcon = weatherIcons[randomInt],
+        weatherDescription = weatherDescriptions[randomInt]
+    )
+}
+
+fun listOfDummy7days(): List<WeatherDay> {
+    val weekDayArray = WeekDay.entries.toTypedArray().map { it.weekDay }
+    val weatherDescriptions = WeatherValues.entries.toTypedArray().map { it.description }
+    val weatherIcons = WeatherValues.entries.toTypedArray().map { it.iconCode }
+
+    var randomInt: Int
+
+    val listWeatherDay = mutableListOf<WeatherDay>()
+
+    for (i in 0..6) {
+        randomInt = Random.nextInt(WeatherValues.entries.size)
+        listWeatherDay.add(
+            WeatherDay(
+                date = weekDayArray[i],
+                temperature = Random.nextInt(0, 31),
+                weatherIcon = weatherIcons[randomInt],
+                weatherDescription = weatherDescriptions[randomInt]
+            )
         )
     }
+    return listWeatherDay
 }
 
-fun arrayOfDummy24Hours(): Array<WeatherValue> {
+fun listOfDummy24Hours(): List<WeatherHour> {
 
-    return Array(24) {
-        WeatherValue(it + 1, createRandomWeatherData(), listOfHours24HourTime[it])
+    val hourArray = Hour24.entries.toTypedArray().map { it.hour }
+    val weatherDescriptions = WeatherValues.entries.toTypedArray().map { it.description }
+    val weatherIcons = WeatherValues.entries.toTypedArray().map { it.iconCode }
+
+    var randomInt: Int
+
+    val listWeatherHour = mutableListOf<WeatherHour>()
+
+    for (i in 0..23) {
+        randomInt = Random.nextInt(WeatherValues.entries.size)
+        listWeatherHour.add(
+            WeatherHour(
+                hour = hourArray[i],
+                temperature = Random.nextInt(0, 31),
+                weatherIcon = weatherIcons[randomInt],
+                weatherDescription = weatherDescriptions[randomInt]
+            )
+        )
     }
-}
-
-enum class DaysOfTheWeek {
-    Sunday,
-    Monday,
-    Tuesday,
-    Wednesday,
-    Thursday,
-    Friday,
-    Saturday
+    return listWeatherHour
 }

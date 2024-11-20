@@ -43,6 +43,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.platform.LocalContext
+import com.example.weatherapp.model.stringToDrawableRes
 
 @Composable
 fun savedCitiesContent(
@@ -166,8 +167,8 @@ fun cityCard(city: City, modifier: Modifier = Modifier) {
                 // network success
                 WeatherNetwork.Success -> {
                     Image(
-                        painter = painterResource(id = city.currentCondition.condition.drawableResId),
-                        contentDescription = city.currentCondition.condition.weatherDescription.joinToString(),
+                        painter = painterResource(id = stringToDrawableRes(city.currentCondition.weatherIcon)),
+                        contentDescription = city.currentCondition.weatherDescription,
                         modifier = Modifier
                             .padding(start = 16.dp, end = 16.dp)
                             .size(50.dp)
@@ -179,7 +180,7 @@ fun cityCard(city: City, modifier: Modifier = Modifier) {
                             modifier = Modifier.padding(bottom = 4.dp),
                             fontWeight = FontWeight.Bold
                         )
-                        Text(city.currentCondition.condition.weatherDescription.joinToString())
+                        Text(city.currentCondition.weatherDescription)
                     }
                     Row(modifier = Modifier.padding(16.dp)) {
                         Text(text = city.currentCondition.temperature.toString(), fontSize = 30.sp)
