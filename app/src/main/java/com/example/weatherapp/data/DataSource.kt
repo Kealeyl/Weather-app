@@ -29,8 +29,8 @@ fun createRandomCity(cityName: String): City {
         currentCondition = createRandomWeatherDayForCurrentWeather(),
         forecast7day = listOfDummy7days(),
         forecast24hour = listOfDummy24Hours(),
-        lat = 0.0,
-        lon = 0.0,
+        lat = null,
+        lon = null,
         networkRequest = WeatherNetwork.Loading
     )
 }
@@ -72,6 +72,24 @@ fun listOfDummy7days(): List<WeatherDay> {
     return listWeatherDay
 }
 
+fun listOError7days(): List<WeatherDay> {
+    val weekDayArray = WeekDay.entries.toTypedArray().map { it.weekDay }
+
+    val listWeatherDay = mutableListOf<WeatherDay>()
+
+    for (i in 0..6) {
+        listWeatherDay.add(
+            WeatherDay(
+                date = weekDayArray[i],
+                temperature = 0,
+                weatherIcon = "error",
+                weatherDescription = "error"
+            )
+        )
+    }
+    return listWeatherDay
+}
+
 fun listOfDummy24Hours(): List<WeatherHour> {
 
     val hourArray = Hour24.entries.toTypedArray().map { it.hour }
@@ -90,6 +108,24 @@ fun listOfDummy24Hours(): List<WeatherHour> {
                 temperature = Random.nextInt(0, 31),
                 weatherIcon = weatherIcons[randomInt],
                 weatherDescription = weatherDescriptions[randomInt]
+            )
+        )
+    }
+    return listWeatherHour
+}
+
+fun listOfError24Hours(): List<WeatherHour> {
+    val hourArray = Hour24.entries.toTypedArray().map { it.hour }
+
+    val listWeatherHour = mutableListOf<WeatherHour>()
+
+    for (i in 0..23) {
+        listWeatherHour.add(
+            WeatherHour(
+                hour = hourArray[i],
+                temperature = 0,
+                weatherIcon = "error",
+                weatherDescription = "error"
             )
         )
     }

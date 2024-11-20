@@ -9,8 +9,8 @@ data class City(
     val forecast24hour: List<WeatherHour>,
     val currentCondition: WeatherDay,
     val networkRequest: WeatherNetwork,
-    val lat: Double,
-    val lon: Double
+    val lat: Double?,
+    val lon: Double?
 )
 
 data class WeatherDay(

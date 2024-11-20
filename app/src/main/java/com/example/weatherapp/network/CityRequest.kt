@@ -17,7 +17,7 @@ data class GeocoderRequest(
     val lat: Double,
     val lon: Double,
     val country: String,
-    val state: String?
+    val state: String? = null,
 )
 
 @Serializable
@@ -49,7 +49,7 @@ data class Current(
     val dewPoint: Double,
     val uvi: Double,
     val clouds: Int,
-    val visibility: Int,
+    val visibility: Int? = null,
     @SerialName(value = "wind_speed")
     val windSpeed: Double,
     @SerialName(value = "wind_deg")
@@ -94,7 +94,7 @@ data class Hourly(
     val dewPoint: Double,
     val uvi: Double,
     val clouds: Int,
-    val visibility: Int,
+    val visibility: Int? = null,
     @SerialName(value = "wind_speed")
     val windSpeed: Double,
     @SerialName(value = "wind_deg")
