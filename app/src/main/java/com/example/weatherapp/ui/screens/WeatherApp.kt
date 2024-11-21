@@ -10,7 +10,8 @@ import com.example.weatherapp.ui.WeatherAppViewModel
 
 @Composable
 fun WeatherApp( modifier: Modifier = Modifier){
-    val weatherAppViewModel: WeatherAppViewModel = viewModel()
+    val weatherAppViewModel: WeatherAppViewModel = viewModel(factory = WeatherAppViewModel.Factory)
+
     val weatherUIState by weatherAppViewModel.uiState.collectAsState()
 
     BaseScreen(

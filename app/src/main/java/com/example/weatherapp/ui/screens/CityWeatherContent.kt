@@ -310,8 +310,14 @@ fun hourCard(
 
                 WeatherNetwork.Success -> {
                     Row {
+                        val hourText = if (weatherHour.hour == "Now"){
+                            weatherHour.hour
+                        } else {
+                            "${weatherHour.hour}:00"
+                        }
+
                         Text(
-                            "${weatherHour.hour}:00",
+                            hourText,
                             fontSize = 12.sp,
                             modifier = Modifier.padding(end = 2.dp)
                         )

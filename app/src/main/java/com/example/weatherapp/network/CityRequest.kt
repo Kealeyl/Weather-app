@@ -5,20 +5,10 @@ import kotlinx.serialization.Serializable
 
 // Kotlin data class to store the parsed results from kotlinx.serialization
 
-@Serializable
+
 // key names in the JSON response
-
-
 // ? for fields that might not be present for every request
-data class GeocoderRequest(
-    val name: String,
-    @SerialName(value = "local_names")
-    val localNames: Map<String, String>?, // key values pairs
-    val lat: Double,
-    val lon: Double,
-    val country: String,
-    val state: String? = null,
-)
+
 
 @Serializable
 // key names in the JSON response

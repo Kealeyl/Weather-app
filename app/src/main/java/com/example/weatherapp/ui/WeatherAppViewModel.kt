@@ -2,9 +2,14 @@ package com.example.weatherapp.ui
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import com.example.weatherapp.BuildConfig
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.weatherapp.WeatherAppApplication
 import com.example.weatherapp.data.Tab
+import com.example.weatherapp.data.WeatherRepository
 import com.example.weatherapp.data.WeatherUIState
 import com.example.weatherapp.data.listOError7days
 import com.example.weatherapp.data.listOfCities
@@ -15,10 +20,8 @@ import com.example.weatherapp.model.WeatherDay
 import com.example.weatherapp.model.WeatherHour
 import com.example.weatherapp.model.WeatherNetwork
 import com.example.weatherapp.model.WeekDay
-import com.example.weatherapp.network.CityRequest
 import com.example.weatherapp.network.Daily
 import com.example.weatherapp.network.Hourly
-import com.example.weatherapp.network.NewWeatherApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,7 +32,7 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.round
 
-class WeatherAppViewModel : ViewModel() {
+class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : ViewModel() {
 
     // Backing property
     private val _uiState = MutableStateFlow(WeatherUIState())
@@ -91,7 +94,7 @@ class WeatherAppViewModel : ViewModel() {
     // refactor to use map?
     private fun getCityByName(cityName: String): City? {
 
-        if(_uiState.value.homeCity.cityName.equals(cityName, ignoreCase = true)){
+        if (_uiState.value.homeCity.cityName.equals(cityName, ignoreCase = true)) {
             return _uiState.value.homeCity
         }
 
@@ -131,11 +134,7 @@ class WeatherAppViewModel : ViewModel() {
 
             try {
                 if (city == null || city.lat == null || city.lon == null) {
-                    val latLongName = NewWeatherApi.newRetrofitService.getLatLongName(
-                        apiKey = BuildConfig.API_KEY,
-                        city = cityName,
-                        limit = 1
-                    )
+                    val latLongName = weatherRepository.getLatLongName(cityName)
 
                     lat = latLongName[0].lat
                     lon = latLongName[0].lon
@@ -159,13 +158,7 @@ class WeatherAppViewModel : ViewModel() {
             }
 
             try {
-                val result = NewWeatherApi.newRetrofitService.getNewCityWeather(
-                    lat = lat,
-                    lon = lon,
-                    apiKey = BuildConfig.API_KEY,
-                    tempUnit = "metric",
-                    exclude = "minutely,alerts"
-                )
+                val result = weatherRepository.getCityWeather(lat, lon)
 
                 getNetWorkRequestCity(
 
@@ -204,7 +197,11 @@ class WeatherAppViewModel : ViewModel() {
                     "Success fetching weather for $cityName"
                 )
             } catch (e: Exception) {
-                Log.e("APIRequest", "Error fetching weather data for $cityName Lat: $lat, Lon: $lon", e)
+                Log.e(
+                    "APIRequest",
+                    "Error fetching weather data for $cityName Lat: $lat, Lon: $lon",
+                    e
+                )
                 getNetWorkRequestCity(
                     createErrorCity(cityName)
                 )
@@ -256,13 +253,11 @@ class WeatherAppViewModel : ViewModel() {
             )
         )
 
-
         for (i in 1..6) {
             listWeatherDay.add(
                 WeatherDay(
-                    temperature = round(listDaily[0].temp.day).toInt(),
-                    weatherDescription = listDaily[i].weather[0].description
-                        ?: "No data",
+                    temperature = round(listDaily[i].temp.day).toInt(),
+                    weatherDescription = listDaily[i].weather[0].description,
                     weatherIcon = listDaily[i].weather[0].icon,
                     date = weekDayArray[index++ % weekDayArray.size]
                 )
@@ -274,14 +269,18 @@ class WeatherAppViewModel : ViewModel() {
     private fun create24HourForecast(listHourly: List<Hourly>): List<WeatherHour> {
         val hour = SimpleDateFormat("HH", Locale.getDefault()).format(Date())
 
+        Log.d("24Hour", "The hour $hour")
+
         var index = 0
 
-        for ((i, value) in weekDayArray.withIndex()) {
+        for ((i, value) in hourList.withIndex()) {
             if (value == hour) {
                 index = i
                 break
             }
         }
+
+        Log.d("24Hour", "The index $index")
 
         val listWeatherHour = mutableListOf<WeatherHour>()
 
@@ -311,7 +310,8 @@ class WeatherAppViewModel : ViewModel() {
 
         _uiState.update {
             it.copy(
-                currentSelectedCity = it.currentSelectedCity.copy(networkRequest = WeatherNetwork.Loading)
+                currentSelectedCity = it.currentSelectedCity.copy(networkRequest = WeatherNetwork.Loading),
+                currentScreen = Tab.CITYDETAIL,
             )
         }
 
@@ -319,7 +319,6 @@ class WeatherAppViewModel : ViewModel() {
             _uiState.update {
                 it.copy(
                     currentSelectedCity = netWorkRequestCity,
-                    currentScreen = Tab.CITYDETAIL,
                     isPreviousSavedScreen = false
                 )
             }
@@ -327,7 +326,6 @@ class WeatherAppViewModel : ViewModel() {
     }
 
     fun getHomeCityWeather() {
-
         _uiState.update {
             it.copy(
                 homeCity = it.homeCity.copy(networkRequest = WeatherNetwork.Loading)
@@ -341,13 +339,31 @@ class WeatherAppViewModel : ViewModel() {
 
     fun getSavedCitiesWeather() {
         _uiState.value.listOfSavedCities.forEachIndexed { index, city ->
-            getNewWeatherForCity(city.cityName) { netWorkRequestCity ->
 
+
+            _uiState.update { uiState ->
+                val updatedCities = uiState.listOfSavedCities.toMutableList()
+                updatedCities[index] = updatedCities[index].copy(networkRequest = WeatherNetwork.Loading)
+                uiState.copy(listOfSavedCities = updatedCities) // creating new list
+            }
+
+            getNewWeatherForCity(city.cityName) { netWorkRequestCity ->
                 _uiState.update { uiState ->
                     val updatedCities = uiState.listOfSavedCities.toMutableList()
                     updatedCities[index] = netWorkRequestCity
                     uiState.copy(listOfSavedCities = updatedCities) // creating new list
                 }
+            }
+        }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application =
+                    (this[APPLICATION_KEY] as WeatherAppApplication) // used to find the app's WeatherAppApplication object
+                val weatherRepository = application.container.weatherRepository
+                WeatherAppViewModel(weatherRepository = weatherRepository)
             }
         }
     }
