@@ -20,17 +20,18 @@ fun WeatherApp( modifier: Modifier = Modifier){
         onTabPressed = weatherAppViewModel::tabClick,
         onSearchScreenBack = weatherAppViewModel::backPressClickSearchScreen,
         onSearchSavedBack = weatherAppViewModel::backPressClickSavedScreen,
-        onSearchEnter = weatherAppViewModel::getSearchCityWeather,
-        onSearchValueChange = weatherAppViewModel::onSearch,
+        onSearchEnterNetwork = weatherAppViewModel::getSearchCityWeather,
+        onSearchNetworkValueChange = weatherAppViewModel::onSearchNetwork,
+        searchNetworkValue = weatherUIState.userSearchNetwork,
         onSavedSearchEnter = {},
-        onSavedSearchValueChange = weatherAppViewModel::onSearch,
-        savedScreenSearchValue = weatherUIState.userSearch,
-        searchValue = weatherUIState.userSearch,
+        onSavedSearchValueChange = weatherAppViewModel::onSearchSaved,
+        savedScreenSearchValue = weatherUIState.userSearchSaved,
         addToSavedCities = weatherAppViewModel::addCity,
         isCityInSavedList = weatherAppViewModel::isCityInSavedList,
         onDeleteButtonClick = weatherAppViewModel::deleteCity,
         onRefreshSavedButtonClick = weatherAppViewModel::getSavedCitiesWeather,
         onRefreshHomeButtonClick = weatherAppViewModel::getHomeCityWeather,
+        onTimeCardClick = weatherAppViewModel::onTimeCardClick,
         modifier = modifier
     )
 }

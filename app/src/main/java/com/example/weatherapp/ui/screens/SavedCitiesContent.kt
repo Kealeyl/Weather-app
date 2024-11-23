@@ -43,7 +43,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.platform.LocalContext
-import com.example.weatherapp.model.stringToDrawableRes
+import com.example.weatherapp.data.stringToDrawableRes
 
 @Composable
 fun savedCitiesContent(

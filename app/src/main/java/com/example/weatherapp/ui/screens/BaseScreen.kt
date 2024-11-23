@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
@@ -17,9 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.weatherapp.data.Tab
 import com.example.weatherapp.data.WeatherUIState
+import com.example.weatherapp.data.homeCityOttawa
 import com.example.weatherapp.model.City
+import com.example.weatherapp.model.WeatherNetwork
 
 @Composable
 fun BaseScreen(
@@ -28,9 +32,9 @@ fun BaseScreen(
     onCityClick: (City) -> Unit,
     onSearchScreenBack: () -> Unit,
     onSearchSavedBack: () -> Unit,
-    searchValue: String,
-    onSearchValueChange: (String) -> Unit,
-    onSearchEnter: (String) -> Unit,
+    searchNetworkValue: String,
+    onSearchNetworkValueChange: (String) -> Unit,
+    onSearchEnterNetwork: (String) -> Unit,
     savedScreenSearchValue: String,
     onSavedSearchValueChange: (String) -> Unit,
     onSavedSearchEnter: (String) -> Unit,
@@ -39,6 +43,7 @@ fun BaseScreen(
     onDeleteButtonClick: (City) -> Unit,
     onRefreshSavedButtonClick: () -> Unit,
     onRefreshHomeButtonClick: () -> Unit,
+    onTimeCardClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -58,6 +63,7 @@ fun BaseScreen(
             onTabPressed = onTabPressed,
             weatherUIState = weatherUIState,
             onRefreshButtonClick = onRefreshHomeButtonClick,
+            onTimeCardClick = onTimeCardClick,
             modifier = modifier
         )
 
@@ -65,14 +71,14 @@ fun BaseScreen(
             weatherUIState = weatherUIState,
             navigationItemContentList = navigationItemContentList,
             onTabPressed = onTabPressed,
-            onSearchEnter = onSearchEnter,
-            onSearchValueChange = onSearchValueChange,
-            searchValue = searchValue,
+            onSearchEnter = onSearchEnterNetwork,
+            onSearchValueChange = onSearchNetworkValueChange,
+            searchValue = searchNetworkValue,
             modifier = modifier
         )
 
         Tab.SAVED -> SavedCitiesScreen( // back press
-            listOfCities = weatherUIState.listOfSavedCities,
+            listOfCities = weatherUIState.listOfSavedCitiesOrderAdded,
             onCityClick = onCityClick, // city weather screen
             weatherUIState = weatherUIState,
             navigationItemContentList = navigationItemContentList,
@@ -124,7 +130,7 @@ private fun ClickedCityWeatherScreen(
             isCityInSavedList = isCityInSavedList,
             onDeleteButtonClick = onDeleteButtonClick
         )
-        CityWeatherContent(weatherUIState.currentSelectedCity, modifier = Modifier.weight(1f))
+        CityWeatherContent(weatherUIState.currentSelectedCity, modifier = Modifier.weight(1f), is24Hour = weatherUIState.is24Hour)
     }
 }
 
@@ -133,17 +139,19 @@ private fun HomeCityWeatherScreen(
     weatherUIState: WeatherUIState,
     onTabPressed: (Tab) -> Unit,
     navigationItemContentList: List<NavigationItemContent>,
+    onTimeCardClick: () -> Unit,
     onRefreshButtonClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         HomeScreenTopBar(
             weatherUIState,
-            onGridButtonClick = {},
+            onTimeCardClick = onTimeCardClick,
             onRefreshButtonClick = onRefreshButtonClick,
+            is24Hour = weatherUIState.is24Hour,
             modifier = Modifier.background(Color.LightGray)
         )
-        CityWeatherContent(weatherUIState.homeCity, modifier = Modifier.weight(1f))
+        CityWeatherContent(weatherUIState.homeCity, modifier = Modifier.weight(1f), is24Hour = weatherUIState.is24Hour)
         BottomNavigationBar(
             currentTab = weatherUIState.currentScreen,
             onTabPressed = onTabPressed,
@@ -247,20 +255,22 @@ private data class NavigationItemContent(
 fun BaseScreenHomePreview() {
     BaseScreen(
         onCityClick = {},
-        weatherUIState = WeatherUIState(),
+        weatherUIState =
+        WeatherUIState(is24Hour = false, homeCity = homeCityOttawa.copy(networkRequest = WeatherNetwork.Success)),
         onTabPressed = {},
         onSearchScreenBack = {},
         onSearchSavedBack = {},
-        onSearchEnter = {},
-        onSearchValueChange = {},
+        onSearchEnterNetwork = {},
+        searchNetworkValue = "",
         onSavedSearchEnter = {},
         onSavedSearchValueChange = {},
         addToSavedCities = {},
-        searchValue = "",
+        onSearchNetworkValueChange = {},
         isCityInSavedList = {_-> true},
         onDeleteButtonClick = {},
         onRefreshSavedButtonClick = {},
         onRefreshHomeButtonClick = {},
+        onTimeCardClick = {},
         savedScreenSearchValue = ""
     )
 }
@@ -274,16 +284,17 @@ fun BaseScreenSavedPreview() {
         onTabPressed = {},
         onSearchScreenBack = {},
         onSearchSavedBack = {},
-        onSearchEnter = {},
-        onSearchValueChange = {},
+        onSearchEnterNetwork = {},
+        onSearchNetworkValueChange = {},
         onSavedSearchEnter = {},
         onSavedSearchValueChange = {},
         addToSavedCities = {},
-        searchValue = "",
+        searchNetworkValue = "",
         savedScreenSearchValue = "",
         isCityInSavedList = {_-> true},
         onRefreshSavedButtonClick = {},
         onRefreshHomeButtonClick = {},
+        onTimeCardClick = {},
         onDeleteButtonClick = {},
     )
 }
@@ -297,16 +308,17 @@ fun BaseScreenSearchPreview() {
         onTabPressed = {},
         onSearchScreenBack = {},
         onSearchSavedBack = {},
-        onSearchEnter = {},
-        onSearchValueChange = {},
+        onSearchEnterNetwork = {},
+        onSearchNetworkValueChange = {},
         onSavedSearchEnter = {},
         onSavedSearchValueChange = {},
         addToSavedCities = {},
-        searchValue = "",
+        searchNetworkValue = "",
         savedScreenSearchValue = "",
         isCityInSavedList = {_-> true},
         onRefreshSavedButtonClick = {},
         onRefreshHomeButtonClick = {},
+        onTimeCardClick = {},
         onDeleteButtonClick = {},
     )
 }

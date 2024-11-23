@@ -29,14 +29,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherapp.R
 import com.example.weatherapp.data.homeCityOttawa
+import com.example.weatherapp.data.stringToDrawableRes
 import com.example.weatherapp.model.City
 import com.example.weatherapp.model.WeatherDay
 import com.example.weatherapp.model.WeatherHour
 import com.example.weatherapp.model.WeatherNetwork
-import com.example.weatherapp.model.stringToDrawableRes
 
 @Composable
-fun CityWeatherContent(city: City, modifier: Modifier = Modifier) {
+fun CityWeatherContent(city: City, is24Hour: Boolean, modifier: Modifier = Modifier) {
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -84,7 +84,7 @@ fun CityWeatherContent(city: City, modifier: Modifier = Modifier) {
             }
         }
 
-        hourRow(city.forecast24hour, city.networkRequest)
+        hourRow(city.forecast24hour, networkStatus = city.networkRequest, is24Hour = is24Hour)
         forecast7day(city.forecast7day, city.networkRequest)
     }
 }
@@ -92,6 +92,7 @@ fun CityWeatherContent(city: City, modifier: Modifier = Modifier) {
 @Composable
 fun hourRow(
     forecast24Hour: List<WeatherHour>,
+    is24Hour: Boolean,
     networkStatus: WeatherNetwork,
     modifier: Modifier = Modifier
 ) {
@@ -100,6 +101,7 @@ fun hourRow(
             hourCard(
                 weatherHour = it,
                 modifier = Modifier.padding(5.dp),
+                is24Hour = is24Hour,
                 networkStatus = networkStatus
             )
         }
@@ -273,12 +275,13 @@ fun SevenDayCard(
 fun hourCard(
     weatherHour: WeatherHour,
     networkStatus: WeatherNetwork,
+    is24Hour: Boolean,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
-            .width(55.dp)
-            .height(80.dp)
+            .width(65.dp)
+            .height(90.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -310,7 +313,7 @@ fun hourCard(
 
                 WeatherNetwork.Success -> {
                     Row {
-                        val hourText = if (weatherHour.hour == "Now"){
+                        val hourText = if (weatherHour.hour == "Now" || !is24Hour){
                             weatherHour.hour
                         } else {
                             "${weatherHour.hour}:00"
@@ -341,17 +344,17 @@ fun hourCard(
 @Preview(showSystemUi = true)
 @Composable
 fun CityWeatherLoadingPreview() {
-    CityWeatherContent(homeCityOttawa.copy(networkRequest = WeatherNetwork.Loading))
+    CityWeatherContent(homeCityOttawa.copy(networkRequest = WeatherNetwork.Loading), is24Hour = true)
 }
 
 @Preview(showSystemUi = true)
 @Composable
 fun CityWeatherErrorPreview() {
-    CityWeatherContent(homeCityOttawa.copy(networkRequest = WeatherNetwork.Error))
+    CityWeatherContent(homeCityOttawa.copy(networkRequest = WeatherNetwork.Error), is24Hour = true)
 }
 
 @Preview(showSystemUi = true)
 @Composable
 fun CityWeatherSuccessPreview() {
-    CityWeatherContent(homeCityOttawa.copy(networkRequest = WeatherNetwork.Success))
+    CityWeatherContent(homeCityOttawa.copy(networkRequest = WeatherNetwork.Success), is24Hour = true)
 }

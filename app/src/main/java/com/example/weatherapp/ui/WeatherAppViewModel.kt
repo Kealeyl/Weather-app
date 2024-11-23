@@ -11,15 +11,17 @@ import com.example.weatherapp.WeatherAppApplication
 import com.example.weatherapp.data.Tab
 import com.example.weatherapp.data.WeatherRepository
 import com.example.weatherapp.data.WeatherUIState
+import com.example.weatherapp.data.hourArray12
+import com.example.weatherapp.data.hourArray24
 import com.example.weatherapp.data.listOError7days
 import com.example.weatherapp.data.listOfCities
 import com.example.weatherapp.data.listOfError24Hours
+import com.example.weatherapp.data.weekDayArray
 import com.example.weatherapp.model.City
-import com.example.weatherapp.model.Hour24
 import com.example.weatherapp.model.WeatherDay
 import com.example.weatherapp.model.WeatherHour
 import com.example.weatherapp.model.WeatherNetwork
-import com.example.weatherapp.model.WeekDay
+import com.example.weatherapp.network.Current
 import com.example.weatherapp.network.Daily
 import com.example.weatherapp.network.Hourly
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,21 +42,19 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
     // read-only state flow
     val uiState: StateFlow<WeatherUIState> = _uiState.asStateFlow()
 
-    private val hourList = Hour24.entries.toTypedArray().map { it.hour }
-    val weekDayArray = WeekDay.entries.toTypedArray().map { it.weekDay }
-
     init {
         getHomeCityWeather()
         getSavedCitiesWeather()
         _uiState.update {
-            it.copy(listOfSavedCities = listOfCities)
+            it.copy(listOfSavedCitiesOrderAdded = listOfCities)
         }
     }
 
     fun tabClick(clickedTab: Tab) {
         _uiState.update {
-            it.copy(currentScreen = clickedTab)
+            it.copy(currentScreen = clickedTab, userSearchNetwork = "", userSearchSaved = "")
         }
+        onSearchSaved("")
     }
 
     fun clickCity(city: City) {
@@ -68,9 +68,29 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
         }
     }
 
+    fun onTimeCardClick() {
+        val is24Hours = !_uiState.value.is24Hour
+        val date = getDate(is24Hours)
+        val updatedCityHours = _uiState.value.listOfSavedCitiesOrderAdded.map { city ->
+            city.copy(
+                forecast24hour = change24Hour(city.forecast24hour, is24Hours),
+                currentCondition = city.currentCondition.copy(date = date)
+            )
+        }
+        _uiState.update {
+            it.copy(
+                is24Hour = is24Hours,
+                homeCity = it.homeCity.copy(
+                    currentCondition = it.homeCity.currentCondition.copy(date = date),
+                    forecast24hour = change24Hour(it.homeCity.forecast24hour, is24Hours)
+                ), listOfSavedCitiesOrderAdded = updatedCityHours
+            )
+        }
+    }
+
     fun backPressClickSearchScreen() {
         _uiState.update {
-            it.copy(currentScreen = Tab.SEARCH)
+            it.copy(currentScreen = Tab.SEARCH, userSearchNetwork = "")
         }
     }
 
@@ -81,12 +101,12 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
     }
 
     fun getCity(city: City): City? {
-        return _uiState.value.listOfSavedCities.find { it == city }
+        return _uiState.value.listOfSavedCitiesOrderAdded.find { it == city }
     }
 
     // refactor to use map?
     fun isCityInSavedList(city: City): Boolean {
-        return _uiState.value.listOfSavedCities.any {
+        return _uiState.value.listOfSavedCitiesOrderAdded.any {
             it == city
         }
     }
@@ -98,21 +118,59 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
             return _uiState.value.homeCity
         }
 
-        return _uiState.value.listOfSavedCities.find {
+        return _uiState.value.listOfSavedCitiesOrderAdded.find {
             it.cityName.equals(cityName, ignoreCase = true)
         }
     }
 
-    fun onSearch(searched: String) {
+    fun onSearchNetwork(searched: String) {
         _uiState.update {
-            it.copy(userSearch = searched)
+            it.copy(userSearchNetwork = searched)
         }
     }
+
+    fun onSearchSaved(searched: String) {
+
+        Log.d("inSearchSave", "Searched: $searched")
+
+        val listOfSavedOrder: List<City> = _uiState.value.listOfSavedCitiesOrderAdded
+
+        if (searched.isBlank() && _uiState.value.listOfSavedCitiesTemp.isNotEmpty()) {
+            _uiState.update {
+                it.copy(
+                    userSearchSaved = searched,
+                    listOfSavedCitiesOrderAdded = it.listOfSavedCitiesTemp,
+                    listOfSavedCitiesTemp = emptyList()
+                )
+            }
+        } else {
+            val listOfMatches: List<City> =
+                _uiState.value.listOfSavedCitiesOrderAdded.filter { city ->
+                    city.cityName.startsWith(searched, ignoreCase = true)
+                }
+
+            _uiState.update {
+                it.copy(
+                    userSearchSaved = searched,
+                    listOfSavedCitiesOrderAdded = (
+                            listOfMatches.sortedBy { city -> city.cityName } + it.listOfSavedCitiesOrderAdded.filter { city ->
+                                city !in listOfMatches
+                            }),
+                    listOfSavedCitiesTemp = if (it.listOfSavedCitiesTemp.isEmpty()) {
+                        listOfSavedOrder
+                    } else {
+                        it.listOfSavedCitiesTemp
+                    }
+                )
+            }
+        }
+    }
+
 
     fun addCity(city: City) {
         _uiState.update {
             it.copy(
-                listOfSavedCities = it.listOfSavedCities + city
+                listOfSavedCitiesOrderAdded = it.listOfSavedCitiesOrderAdded + city
             )
         }
     }
@@ -120,7 +178,7 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
     fun deleteCity(cityToDelete: City) {
         _uiState.update {
             it.copy(
-                listOfSavedCities = it.listOfSavedCities.filter { city -> city != cityToDelete }
+                listOfSavedCitiesOrderAdded = it.listOfSavedCitiesOrderAdded.filter { city -> city != cityToDelete }
             )
         }
     }
@@ -165,12 +223,7 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
                     if (city == null) {
                         City(
                             cityName = name,
-                            currentCondition = WeatherDay(
-                                weatherDescription = result.current.weather[0].description,
-                                temperature = round(result.current.temp).toInt(),
-                                weatherIcon = result.current.weather[0].icon,
-                                date = getDate()
-                            ),
+                            currentCondition = createWeatherDay(result.current),
                             forecast7day = create7DayForecast(result.daily),
                             forecast24hour = create24HourForecast(result.hourly),
                             networkRequest = WeatherNetwork.Success,
@@ -179,13 +232,7 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
                         )
                     } else {
                         city.copy(
-                            // remove?
-                            currentCondition = WeatherDay(
-                                weatherDescription = result.current.weather[0].description,
-                                temperature = round(result.current.temp).toInt(),
-                                weatherIcon = result.current.weather[0].icon,
-                                date = getDate()
-                            ),
+                            currentCondition = createWeatherDay(result.current),
                             forecast7day = create7DayForecast(result.daily),
                             forecast24hour = create24HourForecast(result.hourly),
                             networkRequest = WeatherNetwork.Success,
@@ -214,7 +261,7 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
             cityName = cityName,
             currentCondition = WeatherDay(
                 weatherDescription = "",
-                date = getDate(),
+                date = getDate(_uiState.value.is24Hour),
                 temperature = 0,
                 weatherIcon = ""
             ),
@@ -226,21 +273,36 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
         )
     }
 
-    private fun getDate(): String {
-        return SimpleDateFormat("EEEE, dd MMMM yyyy | HH:00", Locale.getDefault()).format(Date())
+    private fun getDate(is24Hour: Boolean): String {
+
+        if (is24Hour) {
+            return SimpleDateFormat(
+                "EEEE, dd MMMM yyyy | HH:00",
+                Locale.getDefault()
+            ).format(Date())
+        } else {
+            val date = SimpleDateFormat("EEEE, dd MMMM yyyy | ", Locale.getDefault()).format(Date())
+            val hour = SimpleDateFormat("HH", Locale.getDefault()).format(Date())
+            val hourIndex = hourArray24.indexOf(hour)
+
+            return "$date ${hourArray12[hourIndex]}"
+        }
     }
+
+    private fun createWeatherDay(current: Current): WeatherDay {
+        return WeatherDay(
+            weatherDescription = current.weather[0].description,
+            temperature = round(current.temp).toInt(),
+            weatherIcon = current.weather[0].icon,
+            date = getDate(_uiState.value.is24Hour)
+        )
+    }
+
 
     private fun create7DayForecast(listDaily: List<Daily>): List<WeatherDay> {
         val weekday = SimpleDateFormat("EEEE", Locale.getDefault()).format(Date())
 
-        var index = 0
-
-        for ((i, value) in weekDayArray.withIndex()) {
-            if (value == weekday) {
-                index = i
-                break
-            }
-        }
+        var weekDayIndex = weekDayArray.indexOf(weekday)
 
         val listWeatherDay = mutableListOf<WeatherDay>()
 
@@ -252,6 +314,7 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
                 date = "Today"
             )
         )
+        weekDayIndex++
 
         for (i in 1..6) {
             listWeatherDay.add(
@@ -259,28 +322,30 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
                     temperature = round(listDaily[i].temp.day).toInt(),
                     weatherDescription = listDaily[i].weather[0].description,
                     weatherIcon = listDaily[i].weather[0].icon,
-                    date = weekDayArray[index++ % weekDayArray.size]
+                    date = weekDayArray[weekDayIndex++ % weekDayArray.size]
                 )
             )
         }
         return listWeatherDay
     }
 
-    private fun create24HourForecast(listHourly: List<Hourly>): List<WeatherHour> {
+    private fun getHourIndexAndHourArray(is24Hour: Boolean): Pair<Int, Array<String>> {
         val hour = SimpleDateFormat("HH", Locale.getDefault()).format(Date())
 
-        Log.d("24Hour", "The hour $hour")
+        val hourIndex = hourArray24.indexOf(hour)
 
-        var index = 0
-
-        for ((i, value) in hourList.withIndex()) {
-            if (value == hour) {
-                index = i
-                break
-            }
+        val stringHour: Array<String> = if (is24Hour) {
+            hourArray24
+        } else {
+            hourArray12
         }
+        return Pair(hourIndex, stringHour)
+    }
 
-        Log.d("24Hour", "The index $index")
+    private fun create24HourForecast(listHourly: List<Hourly>): List<WeatherHour> {
+        val (hourIndexTemp, stringHour) = getHourIndexAndHourArray(_uiState.value.is24Hour)
+
+        var hourIndex = hourIndexTemp
 
         val listWeatherHour = mutableListOf<WeatherHour>()
 
@@ -292,15 +357,34 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
                 weatherDescription = listHourly[0].weather[0].description
             )
         )
+        hourIndex++
 
         for (i in 1..23) {
             listWeatherHour.add(
                 WeatherHour(
                     temperature = round(listHourly[i].temp).toInt(),
                     weatherIcon = listHourly[i].weather[0].icon,
-                    hour = hourList[index++ % hourList.size],
+                    hour = stringHour[hourIndex++ % stringHour.size],
                     weatherDescription = listHourly[i].weather[0].description
                 )
+            )
+        }
+        return listWeatherHour
+    }
+
+    private fun change24Hour(listHourly: List<WeatherHour>, is24Hour: Boolean): List<WeatherHour> {
+        val (hourIndexTemp, stringHour) = getHourIndexAndHourArray(is24Hour)
+
+        var hourIndex = hourIndexTemp
+
+        val listWeatherHour = mutableListOf<WeatherHour>()
+
+        listWeatherHour.add(listHourly[0])
+        hourIndex++
+
+        for (i in 1..23) {
+            listWeatherHour.add(
+                listHourly[i].copy(hour = stringHour[hourIndex++ % stringHour.size])
             )
         }
         return listWeatherHour
@@ -338,20 +422,18 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
     }
 
     fun getSavedCitiesWeather() {
-        _uiState.value.listOfSavedCities.forEachIndexed { index, city ->
 
+        val updatedCities = _uiState.value.listOfSavedCitiesOrderAdded.map { city ->
+            city.copy(networkRequest = WeatherNetwork.Loading)
+        }
+        _uiState.update { it.copy(listOfSavedCitiesOrderAdded = updatedCities) }
 
-            _uiState.update { uiState ->
-                val updatedCities = uiState.listOfSavedCities.toMutableList()
-                updatedCities[index] = updatedCities[index].copy(networkRequest = WeatherNetwork.Loading)
-                uiState.copy(listOfSavedCities = updatedCities) // creating new list
-            }
-
+        _uiState.value.listOfSavedCitiesOrderAdded.forEachIndexed { index, city ->
             getNewWeatherForCity(city.cityName) { netWorkRequestCity ->
                 _uiState.update { uiState ->
-                    val updatedCities = uiState.listOfSavedCities.toMutableList()
+                    val updatedCities = uiState.listOfSavedCitiesOrderAdded.toMutableList()
                     updatedCities[index] = netWorkRequestCity
-                    uiState.copy(listOfSavedCities = updatedCities) // creating new list
+                    uiState.copy(listOfSavedCitiesOrderAdded = updatedCities) // creating new list
                 }
             }
         }

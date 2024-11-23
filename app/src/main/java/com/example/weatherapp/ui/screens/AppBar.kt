@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -19,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.weatherapp.R
 import com.example.weatherapp.data.Tab
 import com.example.weatherapp.data.WeatherUIState
@@ -27,12 +30,17 @@ import com.example.weatherapp.model.City
 @Composable
 fun HomeScreenTopBar(
     weatherUIState: WeatherUIState,
-    onGridButtonClick: () -> Unit,
+    onTimeCardClick: () -> Unit,
     onRefreshButtonClick: () -> Unit,
+    is24Hour: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current // for the toast
-
+    val text = if (is24Hour){
+        "24Hr"
+    } else {
+        "12Hr"
+    }
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -43,14 +51,11 @@ fun HomeScreenTopBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(modifier = modifier.fillMaxWidth()) {
-                IconButton(
-                    onClick = onGridButtonClick,
+                Card(
+                    onClick = onTimeCardClick,
                     modifier = Modifier.align(Alignment.CenterStart)
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_grid_view_24),
-                        contentDescription = ""
-                    )
+                    Text(text, modifier = Modifier.padding(8.dp))
                 }
                 Text(
                     weatherUIState.homeCity.cityName,
@@ -144,7 +149,8 @@ fun ToDoAppBarDetails() {
 @Composable
 fun ToDoAppBarHome() {
     HomeScreenTopBar(
-        onGridButtonClick = {},
+        onTimeCardClick = {},
         weatherUIState = WeatherUIState(),
-        onRefreshButtonClick = {})
+        onRefreshButtonClick = {},
+        is24Hour = true)
 }
