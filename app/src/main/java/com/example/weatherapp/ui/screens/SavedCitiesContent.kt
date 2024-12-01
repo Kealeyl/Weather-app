@@ -166,13 +166,14 @@ fun cityCard(city: City, modifier: Modifier = Modifier) {
 
                 // network success
                 WeatherNetwork.Success -> {
-                    Image(
-                        painter = painterResource(id = stringToDrawableRes(city.currentCondition.weatherIcon)),
-                        contentDescription = city.currentCondition.weatherDescription,
-                        modifier = Modifier
+                    BuildAsyncImage(
+                        city.currentCondition.weatherIcon,
+                        city.currentCondition.weatherDescription,
+                        Modifier
                             .padding(start = 16.dp, end = 16.dp)
                             .size(50.dp)
                     )
+
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             city.cityName,

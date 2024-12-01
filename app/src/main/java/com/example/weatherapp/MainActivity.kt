@@ -17,11 +17,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             WeatherAppTheme {
                 WeatherAppTheme {
-                    Scaffold{ padding ->
-
-                        WeatherApp(modifier = Modifier.padding(padding))
-                    }
-
+                        WeatherApp()
 //                    val layoutDirection = LocalLayoutDirection.current
 //                    Surface(
 //                        modifier = Modifier

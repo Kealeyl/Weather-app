@@ -84,4 +84,7 @@ dependencies {
     // Retrofit with Kotlin serialization Converter
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.okhttp)
+
+    // Coil
+    implementation(libs.coil.compose)
 }

@@ -51,10 +51,12 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
     }
 
     fun tabClick(clickedTab: Tab) {
-        _uiState.update {
-            it.copy(currentScreen = clickedTab, userSearchNetwork = "", userSearchSaved = "")
+        if (_uiState.value.userSearchSaved.isNotEmpty()) {
+            onSearchSaved("")
         }
-        onSearchSaved("")
+        _uiState.update {
+            it.copy(currentScreen = clickedTab, userSearchNetwork = "")
+        }
     }
 
     fun clickCity(city: City) {
@@ -135,7 +137,8 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
 
         val listOfSavedOrder: List<City> = _uiState.value.listOfSavedCitiesOrderAdded
 
-        if (searched.isBlank() && _uiState.value.listOfSavedCitiesTemp.isNotEmpty()) {
+        if (searched.isBlank()) {
+            Log.d("inSearchSave blank", "Searched: $searched")
             _uiState.update {
                 it.copy(
                     userSearchSaved = searched,
@@ -144,6 +147,7 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
                 )
             }
         } else {
+            // get cities that start with string
             val listOfMatches: List<City> =
                 _uiState.value.listOfSavedCitiesOrderAdded.filter { city ->
                     city.cityName.startsWith(searched, ignoreCase = true)
@@ -157,7 +161,7 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
                                 city !in listOfMatches
                             }),
                     listOfSavedCitiesTemp = if (it.listOfSavedCitiesTemp.isEmpty()) {
-                        listOfSavedOrder
+                        listOfSavedOrder  // Only saved original when first letter is searched
                     } else {
                         it.listOfSavedCitiesTemp
                     }
@@ -181,6 +185,10 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
                 listOfSavedCitiesOrderAdded = it.listOfSavedCitiesOrderAdded.filter { city -> city != cityToDelete }
             )
         }
+    }
+
+    fun createWeatherIconURL(icon: String): String {
+        return "https://openweathermap.org/img/wn/${icon}@4x.png"
     }
 
     fun getNewWeatherForCity(cityName: String, getNetWorkRequestCity: (City) -> Unit) {
@@ -293,7 +301,7 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
         return WeatherDay(
             weatherDescription = current.weather[0].description,
             temperature = round(current.temp).toInt(),
-            weatherIcon = current.weather[0].icon,
+            weatherIcon = createWeatherIconURL(current.weather[0].icon),
             date = getDate(_uiState.value.is24Hour)
         )
     }
@@ -310,7 +318,7 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
             WeatherDay(
                 temperature = round(listDaily[0].temp.day).toInt(),
                 weatherDescription = listDaily[0].weather[0].description,
-                weatherIcon = listDaily[0].weather[0].icon,
+                weatherIcon = createWeatherIconURL(listDaily[0].weather[0].icon),
                 date = "Today"
             )
         )
@@ -321,7 +329,7 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
                 WeatherDay(
                     temperature = round(listDaily[i].temp.day).toInt(),
                     weatherDescription = listDaily[i].weather[0].description,
-                    weatherIcon = listDaily[i].weather[0].icon,
+                    weatherIcon = createWeatherIconURL(listDaily[i].weather[0].icon),
                     date = weekDayArray[weekDayIndex++ % weekDayArray.size]
                 )
             )
@@ -352,7 +360,7 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
         listWeatherHour.add(
             WeatherHour(
                 temperature = round(listHourly[0].temp).toInt(),
-                weatherIcon = listHourly[0].weather[0].icon,
+                weatherIcon = createWeatherIconURL(listHourly[0].weather[0].icon),
                 hour = "Now",
                 weatherDescription = listHourly[0].weather[0].description
             )
@@ -363,7 +371,7 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
             listWeatherHour.add(
                 WeatherHour(
                     temperature = round(listHourly[i].temp).toInt(),
-                    weatherIcon = listHourly[i].weather[0].icon,
+                    weatherIcon = createWeatherIconURL(listHourly[i].weather[0].icon),
                     hour = stringHour[hourIndex++ % stringHour.size],
                     weatherDescription = listHourly[i].weather[0].description
                 )

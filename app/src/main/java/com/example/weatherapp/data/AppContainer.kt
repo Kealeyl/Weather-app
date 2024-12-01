@@ -11,7 +11,7 @@ interface AppContainer {
     val weatherRepository: NetworkWeatherRepository
 }
 
-// creating weatherRepository dependency
+// creating NetworkWeatherRepository with weatherApiService dependency
 
 class DefaultAppContainer : AppContainer {
 

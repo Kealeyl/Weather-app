@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -27,9 +28,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.weatherapp.R
 import com.example.weatherapp.data.homeCityOttawa
-import com.example.weatherapp.data.stringToDrawableRes
 import com.example.weatherapp.model.City
 import com.example.weatherapp.model.WeatherDay
 import com.example.weatherapp.model.WeatherHour
@@ -73,10 +75,12 @@ fun CityWeatherContent(city: City, is24Hour: Boolean, modifier: Modifier = Modif
             WeatherNetwork.Success -> {
                 Text(text = city.currentCondition.weatherDescription)
 
-                Image(
-                    painter = painterResource(stringToDrawableRes(city.currentCondition.weatherIcon)),
-                    contentDescription = null,
-                    modifier = Modifier.size(80.dp)
+                // executes an image request asynchronously and renders the result
+
+                BuildAsyncImage(
+                    city.currentCondition.weatherIcon,
+                    city.currentCondition.weatherDescription,
+                    Modifier.size(80.dp)
                 )
 
                 Text(text = "${city.currentCondition.temperature} °")
@@ -252,11 +256,13 @@ fun SevenDayCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Spacer(modifier = Modifier.width(150.dp))
-                    Image(
-                        painter = painterResource(id = stringToDrawableRes(weatherday.weatherIcon)),
-                        contentDescription = weatherday.weatherDescription,
-                        modifier = Modifier.size(40.dp)
+
+                    BuildAsyncImage(
+                        weatherday.weatherIcon,
+                        weatherday.weatherDescription,
+                        Modifier.size(40.dp)
                     )
+
                     Text(
                         weatherday.weatherDescription,
                         modifier = Modifier
@@ -313,7 +319,7 @@ fun hourCard(
 
                 WeatherNetwork.Success -> {
                     Row {
-                        val hourText = if (weatherHour.hour == "Now" || !is24Hour){
+                        val hourText = if (weatherHour.hour == "Now" || !is24Hour) {
                             weatherHour.hour
                         } else {
                             "${weatherHour.hour}:00"
@@ -325,10 +331,11 @@ fun hourCard(
                             modifier = Modifier.padding(end = 2.dp)
                         )
                     }
-                    Image(
-                        painter = painterResource(id = stringToDrawableRes(weatherHour.weatherIcon)),
-                        contentDescription = weatherHour.weatherDescription,
-                        modifier = Modifier.size(30.dp)
+
+                    BuildAsyncImage(
+                        weatherHour.weatherIcon,
+                        weatherHour.weatherDescription,
+                        Modifier.size(30.dp)
                     )
 
                     Row {
@@ -341,10 +348,27 @@ fun hourCard(
     }
 }
 
+@Composable
+fun BuildAsyncImage(iconURL: String, contentDescription: String, modifier: Modifier) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(iconURL)
+            .crossfade(true)
+            .build(),
+        contentDescription = contentDescription,
+        modifier = modifier,
+        placeholder = painterResource(R.drawable.network_loading),
+        error = painterResource(R.drawable.network_error),
+    )
+}
+
 @Preview(showSystemUi = true)
 @Composable
 fun CityWeatherLoadingPreview() {
-    CityWeatherContent(homeCityOttawa.copy(networkRequest = WeatherNetwork.Loading), is24Hour = true)
+    CityWeatherContent(
+        homeCityOttawa.copy(networkRequest = WeatherNetwork.Loading),
+        is24Hour = true
+    )
 }
 
 @Preview(showSystemUi = true)
@@ -356,5 +380,8 @@ fun CityWeatherErrorPreview() {
 @Preview(showSystemUi = true)
 @Composable
 fun CityWeatherSuccessPreview() {
-    CityWeatherContent(homeCityOttawa.copy(networkRequest = WeatherNetwork.Success), is24Hour = true)
+    CityWeatherContent(
+        homeCityOttawa.copy(networkRequest = WeatherNetwork.Success),
+        is24Hour = true
+    )
 }
