@@ -17,3 +17,8 @@ A simple weather application.
 - MVVM, separation of concerns
 - Kotlin / Jetpack Compose
 
+(Not all features are fully implemented yet)
+
+Weather app demo:
+
+![me](https://github.com/Kealeyl/Weather-app/blob/main/WeatherAppDemo.gif)
