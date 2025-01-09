@@ -276,7 +276,6 @@ fun SevenDayCard(
     }
 }
 
-
 @Composable
 fun hourCard(
     weatherHour: WeatherHour,

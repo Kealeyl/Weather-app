@@ -1,6 +1,7 @@
 package com.example.weatherapp.ui
 
-import android.util.Log
+//import android.util.Log
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -60,7 +61,7 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
     }
 
     fun clickCity(city: City) {
-        Log.d("clickCity", "Clicked city $city")
+     //   Log.d("clickCity", "Clicked city $city")
         _uiState.update {
             it.copy(
                 currentSelectedCity = city,
@@ -133,12 +134,12 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
 
     fun onSearchSaved(searched: String) {
 
-        Log.d("inSearchSave", "Searched: $searched")
+     //   Log.d("inSearchSave", "Searched: $searched")
 
         val listOfSavedOrder: List<City> = _uiState.value.listOfSavedCitiesOrderAdded
 
         if (searched.isBlank()) {
-            Log.d("inSearchSave blank", "Searched: $searched")
+          //  Log.d("inSearchSave blank", "Searched: $searched")
             _uiState.update {
                 it.copy(
                     userSearchSaved = searched,
@@ -187,7 +188,7 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
         }
     }
 
-    fun createWeatherIconURL(icon: String): String {
+    private fun createWeatherIconURL(icon: String): String {
         return "https://openweathermap.org/img/wn/${icon}@4x.png"
     }
 
@@ -206,17 +207,17 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
                     lon = latLongName[0].lon
                     name = latLongName[0].name
 
-                    Log.d(
-                        "APIRequest",
-                        "Success fetching lat long data for $cityName, Lat: $lat, Lon: $lon"
-                    )
+//                    Log.d(
+//                        "APIRequest",
+//                        "Success fetching lat long data for $cityName, Lat: $lat, Lon: $lon"
+//                    )
                 } else {
                     lat = city.lat
                     lon = city.lon
                     name = city.cityName
                 }
             } catch (e: Exception) {
-                Log.e("APIRequest", "Error fetching lat long data for $cityName: ${e.message}", e)
+               // Log.e("APIRequest", "Error fetching lat long data for $cityName: ${e.message}", e)
                 getNetWorkRequestCity(
                     createErrorCity(cityName)
                 )
@@ -247,16 +248,16 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
                         )
                     }
                 )
-                Log.d(
-                    "APIRequest",
-                    "Success fetching weather for $cityName"
-                )
+//                Log.d(
+//                    "APIRequest",
+//                    "Success fetching weather for $cityName"
+//                )
             } catch (e: Exception) {
-                Log.e(
-                    "APIRequest",
-                    "Error fetching weather data for $cityName Lat: $lat, Lon: $lon",
-                    e
-                )
+//                Log.e(
+//                    "APIRequest",
+//                    "Error fetching weather data for $cityName Lat: $lat, Lon: $lon",
+//                    e
+//                )
                 getNetWorkRequestCity(
                     createErrorCity(cityName)
                 )
@@ -281,6 +282,9 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
         )
     }
 
+    // gets the current date, shows hour in either 24-hour or 12-hour time
+    // Tuesday, 07 January 2025 | 17:00
+    // Tuesday, 07 January 2025 | 5:00 PM
     private fun getDate(is24Hour: Boolean): String {
 
         if (is24Hour) {
@@ -337,10 +341,17 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
         return listWeatherDay
     }
 
-    private fun getHourIndexAndHourArray(is24Hour: Boolean): Pair<Int, Array<String>> {
-        val hour = SimpleDateFormat("HH", Locale.getDefault()).format(Date())
+    // test
+    // gets the index of the current hour in the hour array
+    // returns the array of either 24-hour format or 12-hour format
+    @VisibleForTesting
+    internal fun getHourIndexAndHourArray(
+        is24Hour: Boolean,
+        hourIn24HourTime: String
+    ): Pair<Int, Array<String>> {
+        //val hour = SimpleDateFormat("HH", Locale.getDefault()).format(Date())
 
-        val hourIndex = hourArray24.indexOf(hour)
+        val hourIndex = hourArray24.indexOf(hourIn24HourTime)
 
         val stringHour: Array<String> = if (is24Hour) {
             hourArray24
@@ -350,8 +361,12 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
         return Pair(hourIndex, stringHour)
     }
 
+    // test
     private fun create24HourForecast(listHourly: List<Hourly>): List<WeatherHour> {
-        val (hourIndexTemp, stringHour) = getHourIndexAndHourArray(_uiState.value.is24Hour)
+        val (hourIndexTemp, stringHour) = getHourIndexAndHourArray(
+            is24Hour = _uiState.value.is24Hour,
+            hourIn24HourTime = SimpleDateFormat("HH", Locale.getDefault()).format(Date())
+        )
 
         var hourIndex = hourIndexTemp
 
@@ -380,8 +395,13 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
         return listWeatherHour
     }
 
-    private fun change24Hour(listHourly: List<WeatherHour>, is24Hour: Boolean): List<WeatherHour> {
-        val (hourIndexTemp, stringHour) = getHourIndexAndHourArray(is24Hour)
+    // test
+    @VisibleForTesting
+    internal fun change24Hour(listHourly: List<WeatherHour>, is24Hour: Boolean): List<WeatherHour> {
+        val (hourIndexTemp, stringHour) = getHourIndexAndHourArray(
+            is24Hour = is24Hour,
+            hourIn24HourTime = SimpleDateFormat("HH", Locale.getDefault()).format(Date())
+        )
 
         var hourIndex = hourIndexTemp
 
