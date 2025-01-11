@@ -245,6 +245,8 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
                             forecast7day = create7DayForecast(result.daily),
                             forecast24hour = create24HourForecast(result.hourly),
                             networkRequest = WeatherNetwork.Success,
+                            lat = lat,
+                            lon = lon
                         )
                     }
                 )
@@ -310,8 +312,8 @@ class WeatherAppViewModel(private val weatherRepository: WeatherRepository) : Vi
         )
     }
 
-
-    private fun create7DayForecast(listDaily: List<Daily>): List<WeatherDay> {
+    @VisibleForTesting
+    internal fun create7DayForecast(listDaily: List<Daily>): List<WeatherDay> {
         val weekday = SimpleDateFormat("EEEE", Locale.getDefault()).format(Date())
 
         var weekDayIndex = weekDayArray.indexOf(weekday)

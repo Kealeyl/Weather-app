@@ -69,7 +69,6 @@ val listOfCities = listOf(
     createRandomCity("Sydney"),
 )
 
-
 val defaultCity = createRandomCity("Default")
 
 val homeCityOttawa = createRandomCity("Ottawa")
@@ -78,8 +77,8 @@ fun createRandomCity(cityName: String): City {
     return City(
         cityName = cityName,
         currentCondition = createRandomWeatherDayForCurrentWeather(),
-        forecast7day = listOfDummy7days(),
-        forecast24hour = listOfDummy24Hours(),
+        forecast7day = listOf(),
+        forecast24hour = listOf(),
         lat = null,
         lon = null,
         networkRequest = WeatherNetwork.Loading

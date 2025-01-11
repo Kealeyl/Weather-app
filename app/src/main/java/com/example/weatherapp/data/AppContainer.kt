@@ -25,9 +25,9 @@ class DefaultAppContainer : AppContainer {
         .baseUrl(baseUrl)
         .build()
 
-    private val retrofitService: WeatherApiService by lazy { retrofit.create(WeatherApiService::class.java) }
+    private val retrofitWeatherApiService: WeatherApiService by lazy { retrofit.create(WeatherApiService::class.java) }
 
     override val weatherRepository: NetworkWeatherRepository by lazy {
-        NetworkWeatherRepository(retrofitService)
+        NetworkWeatherRepository(retrofitWeatherApiService)
     }
 }
